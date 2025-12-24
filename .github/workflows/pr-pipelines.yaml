@@ -1,0 +1,61 @@
+name: PR Pipelines
+run-name: Tests check on
+on: [pull_request]
+jobs:
+  black:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v4
+      with:
+        python-version: '3.12'
+    - uses: astral-sh/setup-uv@v6
+    - run: uv sync --locked
+    - run: cp env-ci .env && make check-black
+  isort:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: cp env-ci .env && make check-isort
+  flake8:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: cp env-ci .env && make check-flake8
+  pytest:
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:latest
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ROOT_PASSWORD: test1234
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=10s --health-timeout=5s --health-retries=3
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.12'
+      - uses: astral-sh/setup-uv@v6
+      - run: uv sync --locked
+      - run: cp env-ci .env && make pytest
+    env:
+      MARIADB_USER: root
+      MARIADB_PASSWORD: test1234
+      MARIADB_DATABASE: test
+      MARIADB_HOST: 127.0.0.1
+      MARIADB_PORT: 3306

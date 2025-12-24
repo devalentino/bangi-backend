@@ -1,0 +1,66 @@
+import decimal
+
+from marshmallow import Schema as MarshmallowSchema
+from marshmallow import ValidationError, fields
+
+from src.core.constants import PAGINATION_DEFAULT_PAGE_SIZE
+from src.core.enums import CostModel, Currency, SortBy, SortOrder
+
+
+class Schema(MarshmallowSchema):
+    pass
+
+
+class ComaSeparatedStringsField(fields.Field):
+    def _serialize(self, value, attr, obj, **kwargs):
+        if value is None:
+            return ''
+        return ''.join(value)
+
+    def _deserialize(self, value, attr, data, **kwargs):
+        if not isinstance(value, str):
+            raise ValidationError('Field must be a string.')
+        return [v.strip() for v in value.split(',')]
+
+
+class PaginationRequestSchema(Schema):
+    page = fields.Integer(dump_default=1, load_default=1)
+    page_size = fields.Integer(dump_default=PAGINATION_DEFAULT_PAGE_SIZE, load_default=PAGINATION_DEFAULT_PAGE_SIZE)
+    sort_by = fields.Enum(SortBy, dump_default=SortBy.id, load_default=SortBy.id)
+    sort_order = fields.Enum(SortOrder, dump_default=SortOrder.asc, load_default=SortOrder.asc)
+
+
+class PaginationResponseSchema(PaginationRequestSchema):
+    total = fields.Integer(required=True)
+
+
+class CampaignCreateRequestSchema(Schema):
+    name = fields.String(required=True)
+    costModel = fields.Enum(CostModel, required=True)
+    costValue = fields.Decimal(places=2, rounding=decimal.ROUND_DOWN, required=True)
+    currency = fields.Enum(Currency, required=True)
+
+
+class CampaignUpdateRequestSchema(Schema):
+    name = fields.String()
+    costModel = fields.Enum(CostModel)
+    costValue = fields.Decimal(places=2, rounding=decimal.ROUND_DOWN)
+    currency = fields.Enum(Currency)
+
+
+class CampaignResponseSchema(Schema):
+    id = fields.Integer(required=True)
+    name = fields.String(required=True)
+    costModel = fields.String(required=True)
+    costValue = fields.Decimal(places=2, rounding=decimal.ROUND_DOWN, required=True)
+    currency = fields.String(required=True)
+
+
+class CampaignListResponseSchema(Schema):
+    content = fields.Nested(CampaignResponseSchema(many=True), required=True)
+    pagination = fields.Nested(PaginationResponseSchema, required=True)
+
+
+class FilterCampaignResponseSchema(Schema):
+    id = fields.Integer(required=True)
+    name = fields.String(required=True)

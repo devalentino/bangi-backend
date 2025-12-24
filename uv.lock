@@ -32,7 +32,6 @@ dependencies = [
     { name = "peewee" },
     { name = "peewee-migrate" },
     { name = "pyhumps" },
-    { name = "pytest-dotenv" },
     { name = "python-json-logger" },
     { name = "wireup" },
 ]
@@ -40,6 +39,7 @@ dependencies = [
 [package.dev-dependencies]
 dev = [
     { name = "pytest" },
+    { name = "pytest-dotenv" },
     { name = "pytest-mysql" },
 ]
 
@@ -53,7 +53,6 @@ requires-dist = [
     { name = "peewee", specifier = ">=3.18.2" },
     { name = "peewee-migrate", specifier = ">=1.13.0" },
     { name = "pyhumps", specifier = ">=3.8.0" },
-    { name = "pytest-dotenv", specifier = ">=0.5.2" },
     { name = "python-json-logger", specifier = ">=3.3.0" },
     { name = "wireup", specifier = ">=2.0.0" },
 ]
@@ -61,6 +60,7 @@ requires-dist = [
 [package.metadata.requires-dev]
 dev = [
     { name = "pytest", specifier = ">=8.4.1" },
+    { name = "pytest-dotenv", specifier = ">=0.5.2" },
     { name = "pytest-mysql", specifier = ">=3.1.0" },
 ]
 

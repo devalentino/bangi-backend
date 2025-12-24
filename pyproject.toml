@@ -13,7 +13,6 @@ dependencies = [
     "peewee>=3.18.2",
     "peewee-migrate>=1.13.0",
     "pyhumps>=3.8.0",
-    "pytest-dotenv>=0.5.2",
     "python-json-logger>=3.3.0",
     "wireup>=2.0.0",
 ]
@@ -21,6 +20,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pytest>=8.4.1",
+    "pytest-dotenv>=0.5.2",
     "pytest-mysql>=3.1.0",
 ]
 

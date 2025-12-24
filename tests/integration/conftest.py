@@ -20,11 +20,7 @@ mysql = factories.mysql('mysql_in_docker', passwd=os.getenv('MARIADB_PASSWORD'))
 
 @pytest.fixture(autouse=True)
 def mock_database(mysql):
-    environ = os.environ | {
-        'MARIADB_HOST': mysql.host,
-        'MARIADB_PORT': str(mysql.port),
-        'MARIADB_DATABASE': 'test'
-    }
+    environ = os.environ | {'MARIADB_HOST': mysql.host, 'MARIADB_PORT': str(mysql.port), 'MARIADB_DATABASE': 'test'}
     with mock.patch.dict(os.environ, environ):
         yield
 

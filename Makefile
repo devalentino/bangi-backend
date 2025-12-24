@@ -3,7 +3,7 @@ export
 
 pytest:
 	echo "=== Running Pytest ==="
-	pytest --envfile=.env ./tests/integration
+	pytest -v --envfile=.env ./tests/integration
 
 check-black:
 	echo "=== Running Black Checker ==="

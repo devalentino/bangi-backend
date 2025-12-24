@@ -32,6 +32,7 @@ dependencies = [
     { name = "peewee" },
     { name = "peewee-migrate" },
     { name = "pyhumps" },
+    { name = "pymysql" },
     { name = "python-json-logger" },
     { name = "wireup" },
 ]
@@ -53,6 +54,7 @@ requires-dist = [
     { name = "peewee", specifier = ">=3.18.2" },
     { name = "peewee-migrate", specifier = ">=1.13.0" },
     { name = "pyhumps", specifier = ">=3.8.0" },
+    { name = "pymysql", specifier = ">=1.1.1" },
     { name = "python-json-logger", specifier = ">=3.3.0" },
     { name = "wireup", specifier = ">=2.0.0" },
 ]

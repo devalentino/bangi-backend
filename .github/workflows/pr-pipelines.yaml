@@ -10,8 +10,7 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.12'
-    - uses: astral-sh/setup-uv@v6
-    - run: uv sync --locked
+    - run: pip install -r requirements-dev.txt
     - run: cp env-ci .env && make check-black
   isort:
     continue-on-error: true
@@ -21,8 +20,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      - uses: astral-sh/setup-uv@v6
-      - run: uv sync --locked
+      - run: pip install -r requirements-dev.txt
       - run: cp env-ci .env && make check-isort
   flake8:
     runs-on: ubuntu-latest
@@ -31,8 +29,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      - uses: astral-sh/setup-uv@v6
-      - run: uv sync --locked
+      - run: pip install -r requirements-dev.txt
       - run: cp env-ci .env && make check-flake8
   pytest:
     continue-on-error: true
@@ -50,8 +47,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      - uses: astral-sh/setup-uv@v6
-      - run: uv sync --locked
+      - run: pip install -r requirements-dev.txt
       - run: cp env-ci .env && make pytest
     env:
       MARIADB_USER: root

@@ -10,8 +10,7 @@ jobs:
     - uses: actions/setup-python@v4
       with:
         python-version: '3.12'
-    - run: pip install -r requirements-dev.txt
-    - run: cp env-ci .env && make check-black
+    - run: pip install -r requirements-dev.txt && cp env-ci .env && make check-black
   isort:
     continue-on-error: true
     runs-on: ubuntu-latest
@@ -20,8 +19,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      - run: pip install -r requirements-dev.txt
-      - run: cp env-ci .env && make check-isort
+      - run: pip install -r requirements-dev.txt && cp env-ci .env && make check-isort
   flake8:
     runs-on: ubuntu-latest
     steps:
@@ -30,7 +28,7 @@ jobs:
         with:
           python-version: '3.12'
       - run: pip install -r requirements-dev.txt
-      - run: cp env-ci .env && make check-flake8
+      - run: pip install -r requirements-dev.txt && cp env-ci .env && make check-flake8
   pytest:
     continue-on-error: true
     runs-on: ubuntu-latest
@@ -47,8 +45,7 @@ jobs:
       - uses: actions/setup-python@v4
         with:
           python-version: '3.12'
-      - run: pip install -r requirements-dev.txt
-      - run: cp env-ci .env && make pytest
+      - run: pip install -r requirements-dev.txt && cp env-ci .env && make pytest
     env:
       MARIADB_USER: root
       MARIADB_PASSWORD: test1234

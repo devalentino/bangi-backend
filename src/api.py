@@ -5,6 +5,7 @@ from flask_smorest import Api
 from src.auth.routes import blueprint as auth_blueprint
 from src.core.logging import configure_logging
 from src.core.routes import blueprint as core_blueprint
+from src.facebook_autoregs.routes import blueprint as facebook_autoregs_blueprint
 from src.health.routes import blueprint as health_blueprint
 from src.reports.routes import blueprint as reports_blueprint
 from src.tracker.routes import blueprint as track_blueprint
@@ -24,6 +25,7 @@ app.config['OPENAPI_SWAGGER_UI_URL'] = 'https://cdn.jsdelivr.net/npm/swagger-ui-
 api = Api(app)
 api.register_blueprint(auth_blueprint, url_prefix='/api/v2/auth')
 api.register_blueprint(core_blueprint, url_prefix='/api/v2/core')
+api.register_blueprint(facebook_autoregs_blueprint, url_prefix='/api/v2/facebook/autoregs')
 api.register_blueprint(reports_blueprint, url_prefix='/api/v2/reports')
 api.register_blueprint(track_blueprint, url_prefix='/api/v2/track')
 api.register_blueprint(health_blueprint, url_prefix='/api/v2/health')

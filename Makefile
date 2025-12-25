@@ -11,7 +11,7 @@ check-black:
 
 check-flake8:
 	echo "=== Running Flake8 Checker ==="
-	flake8 --ignore=E203,E711,E712,W503 --max-line-length=120 ./src ./tests
+	flake8 --ignore=E203,E711,E712,E731,W503 --max-line-length=120 ./src ./tests
 
 check-isort:
 	echo "=== Running Isort Checker ==="

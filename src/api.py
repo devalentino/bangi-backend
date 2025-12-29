@@ -3,6 +3,7 @@ from flask_cors import CORS
 from flask_smorest import Api
 
 from src.auth.routes import blueprint as auth_blueprint
+from src.core.exceptions import ApplicationError
 from src.core.logging import configure_logging
 from src.core.routes import blueprint as core_blueprint
 from src.facebook_autoregs.routes import blueprint as facebook_autoregs_blueprint
@@ -29,3 +30,11 @@ api.register_blueprint(facebook_autoregs_blueprint, url_prefix='/api/v2/facebook
 api.register_blueprint(reports_blueprint, url_prefix='/api/v2/reports')
 api.register_blueprint(track_blueprint, url_prefix='/api/v2/track')
 api.register_blueprint(health_blueprint, url_prefix='/api/v2/health')
+
+
+@app.errorhandler(Exception)
+def handle_exception(e):
+    if isinstance(e, ApplicationError):
+        return {'message': e.message}, e.http_status_code
+
+    raise e

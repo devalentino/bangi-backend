@@ -4,7 +4,7 @@ from peewee import fn
 from src.core.enums import CostModel, SortOrder
 from src.core.services import CampaignService as CoreCampaignService
 from src.facebook_autoregs import exceptions
-from src.facebook_autoregs.entities import AdCabinet, BusinessManager, Campaign, Executor
+from src.facebook_autoregs.entities import AdCabinet, BusinessPortfolio, Campaign, Executor
 
 
 @service
@@ -44,63 +44,63 @@ class ExecutorService:
 
 
 @service
-class BusinessManagerService:
+class BusinessPortfolioService:
     def __init__(self, executor_service: ExecutorService):
         self.executor_service = executor_service
 
     def get(self, id):
-        return BusinessManager.get_by_id(id)
+        return BusinessPortfolio.get_by_id(id)
 
     def list(self, page, page_size, sort_by, sort_order):
-        order_by = getattr(BusinessManager, sort_by)
+        order_by = getattr(BusinessPortfolio, sort_by)
         if sort_order == SortOrder.desc:
             order_by = order_by.desc()
 
-        return [bm for bm in BusinessManager.select().order_by(order_by).limit(page_size).offset(page - 1)]
+        return [bm for bm in BusinessPortfolio.select().order_by(order_by).limit(page_size).offset(page - 1)]
 
     def create(self, name, is_banned):
-        business_manager = BusinessManager(name=name, is_banned=is_banned)
-        business_manager.save()
-        return business_manager
+        business_portfolio = BusinessPortfolio(name=name, is_banned=is_banned)
+        business_portfolio.save()
+        return business_portfolio
 
-    def update(self, business_manager_id, name=None, is_banned=None):
-        business_manager = BusinessManager.get_by_id(business_manager_id)
+    def update(self, business_portfolio_id, name=None, is_banned=None):
+        business_portfolio = BusinessPortfolio.get_by_id(business_portfolio_id)
 
         if name:
-            business_manager.name = name
+            business_portfolio.name = name
 
         if is_banned is not None:
-            business_manager.is_banned = is_banned
+            business_portfolio.is_banned = is_banned
 
-        business_manager.save()
-        return business_manager
+        business_portfolio.save()
+        return business_portfolio
 
     def count(self):
-        return BusinessManager.select(fn.count(BusinessManager.id)).scalar()
+        return BusinessPortfolio.select(fn.count(BusinessPortfolio.id)).scalar()
 
-    def bind_executor(self, business_manager_id, executor_id):
+    def bind_executor(self, business_portfolio_id, executor_id):
         executor = self.executor_service.get(executor_id)
-        business_manager = self.get(business_manager_id)
+        business_portfolio = self.get(business_portfolio_id)
 
-        business_manager.executors.add(executor)
-        business_manager.save()
+        business_portfolio.executors.add(executor)
+        business_portfolio.save()
 
-        return business_manager
+        return business_portfolio
 
-    def unbind_executor(self, business_manager_id, executor_id):
+    def unbind_executor(self, business_portfolio_id, executor_id):
         executor = self.executor_service.get(executor_id)
-        business_manager = self.get(business_manager_id)
+        business_portfolio = self.get(business_portfolio_id)
 
-        business_manager.executors.remove(executor)
-        business_manager.save()
+        business_portfolio.executors.remove(executor)
+        business_portfolio.save()
 
-        return business_manager
+        return business_portfolio
 
 
 @service
 class AdCabinetService:
-    def __init__(self, business_manager_service: BusinessManagerService):
-        self.business_manager_service = business_manager_service
+    def __init__(self, business_portfolio_service: BusinessPortfolioService):
+        self.business_portfolio_service = business_portfolio_service
 
     def get(self, id):
         return AdCabinet.get_by_id(id)
@@ -132,21 +132,21 @@ class AdCabinetService:
     def count(self):
         return AdCabinet.select(fn.count(AdCabinet.id)).scalar()
 
-    def bind_business_manager(self, ad_cabinet_id, business_manager_id):
-        business_manager = self.business_manager_service.get(business_manager_id)
+    def bind_business_portfolio(self, ad_cabinet_id, business_portfolio_id):
+        business_portfolio = self.business_portfolio_service.get(business_portfolio_id)
         ad_cabinet = self.get(ad_cabinet_id)
 
-        ad_cabinet.business_manager_id = business_manager.id
+        ad_cabinet.business_portfolio_id = business_portfolio.id
         ad_cabinet.save()
 
         return ad_cabinet
 
-    def unbind_business_manager(self, ad_cabinet_id, business_manager_id):
+    def unbind_business_portfolio(self, ad_cabinet_id, business_portfolio_id):
         ad_cabinet = self.get(ad_cabinet_id)
-        if ad_cabinet.business_manager_id != business_manager_id:
-            raise exceptions.BadBusinessManagerError()
+        if ad_cabinet.business_portfolio_id != business_portfolio_id:
+            raise exceptions.BadBusinessPortfolioError()
 
-        ad_cabinet.business_manager_id = None
+        ad_cabinet.business_portfolio_id = None
         ad_cabinet.save()
 
 

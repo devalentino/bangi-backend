@@ -6,6 +6,6 @@ class ExecutorDoesNotExist(ApplicationError):
     message = 'Executor does not exist'
 
 
-class BadBusinessManagerError(ApplicationError):
+class BadBusinessPortfolioError(ApplicationError):
     http_status_code = 400
     message = 'Bad Business Manager'

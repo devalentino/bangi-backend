@@ -15,13 +15,13 @@ class Executor(Entity):
         table_name = f'{TABLE_NAME_PREFIX}executor'
 
 
-class BusinessManager(Entity):
+class BusinessPortfolio(Entity):
     name = CharField()
     is_banned = BooleanField()
     executors = ManyToManyField(Executor, backref='executors')
 
     class Meta:
-        table_name = f'{TABLE_NAME_PREFIX}business_manager'
+        table_name = f'{TABLE_NAME_PREFIX}business_portfolio'
 
     def to_dict(self):
         return model_to_dict(self) | {
@@ -33,21 +33,21 @@ class BusinessManager(Entity):
 class AdCabinet(Entity):
     name = CharField()
     is_banned = BooleanField()
-    business_manager = ForeignKeyField(BusinessManager, backref='ad_cabinets', null=True)
+    business_portfolio = ForeignKeyField(BusinessPortfolio, backref='ad_cabinets', null=True)
 
     class Meta:
         table_name = f'{TABLE_NAME_PREFIX}ad_cabinet'
 
     def to_dict(self):
-        business_manager_dict = None
-        if self.business_manager:
-            business_manager_dict = {
-                'id': self.business_manager.id,
-                'name': self.business_manager.name,
-                'is_banned': self.business_manager.is_banned,
+        business_portfolio_dict = None
+        if self.business_portfolio:
+            business_portfolio_dict = {
+                'id': self.business_portfolio.id,
+                'name': self.business_portfolio.name,
+                'is_banned': self.business_portfolio.is_banned,
             }
 
-        return model_to_dict(self) | {'business_manager': business_manager_dict}
+        return model_to_dict(self) | {'business_portfolio': business_portfolio_dict}
 
 
 class Campaign(Entity):
@@ -59,13 +59,13 @@ class Campaign(Entity):
         table_name = f'{TABLE_NAME_PREFIX}ad_campaign'
 
 
-class BusinessManagerAccessLink(Entity):
-    business_manager = ForeignKeyField(BusinessManager, backref='access_links', null=True)
+class BusinessPortfolioAccessLink(Entity):
+    business_portfolio = ForeignKeyField(BusinessPortfolio, backref='access_links', null=True)
     link = CharField()
 
     class Meta:
-        table_name = f'{TABLE_NAME_PREFIX}business_manager_access_link'
+        table_name = f'{TABLE_NAME_PREFIX}business_portfolio_access_link'
 
 
-BusinessManagerExecutor = BusinessManager.executors.get_through_model()
-BusinessManagerExecutor._meta.table_name = f'{TABLE_NAME_PREFIX}business_manager2executor'
+BusinessPortfolioExecutor = BusinessPortfolio.executors.get_through_model()
+BusinessPortfolioExecutor._meta.table_name = f'{TABLE_NAME_PREFIX}business_portfolio2executor'

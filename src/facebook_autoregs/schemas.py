@@ -3,7 +3,7 @@ from marshmallow import fields
 from src.core.schemas import PaginationResponseSchema, Schema
 
 
-class BusinessManagerNestedResponseSchema(Schema):
+class BusinessPortfolioNestedResponseSchema(Schema):
     id = fields.Integer(required=True)
     name = fields.String(required=True)
     isBanned = fields.Boolean(required=True)
@@ -30,7 +30,7 @@ class AdCabinetRequestSchema(Schema):
 
 class AdCabinetResponseSchema(ExecutorRequestSchema):
     id = fields.Integer(required=True)
-    businessManager = fields.Nested(BusinessManagerNestedResponseSchema())
+    businessPortfolio = fields.Nested(BusinessPortfolioNestedResponseSchema())
 
 
 class AdCabinetListResponseSchema(Schema):
@@ -38,19 +38,19 @@ class AdCabinetListResponseSchema(Schema):
     pagination = fields.Nested(PaginationResponseSchema, required=True)
 
 
-class BusinessManagerRequestSchema(Schema):
+class BusinessPortfolioRequestSchema(Schema):
     name = fields.String(required=True)
     isBanned = fields.Boolean(required=True)
 
 
-class BusinessManagerResponseSchema(ExecutorRequestSchema):
+class BusinessPortfolioResponseSchema(ExecutorRequestSchema):
     id = fields.Integer(required=True)
     executors = fields.Nested(ExecutorResponseSchema(many=True), required=True)
     adCabinets = fields.Nested(AdCabinetResponseSchema(many=True), required=True)
 
 
-class BusinessManagerListResponseSchema(Schema):
-    content = fields.Nested(BusinessManagerResponseSchema(many=True), required=True)
+class BusinessPortfolioListResponseSchema(Schema):
+    content = fields.Nested(BusinessPortfolioResponseSchema(many=True), required=True)
     pagination = fields.Nested(PaginationResponseSchema, required=True)
 
 

@@ -9,9 +9,9 @@ from src.facebook_autoregs.schemas import (
     AdCabinetListResponseSchema,
     AdCabinetRequestSchema,
     AdCabinetResponseSchema,
-    BusinessManagerListResponseSchema,
-    BusinessManagerRequestSchema,
-    BusinessManagerResponseSchema,
+    BusinessPortfolioListResponseSchema,
+    BusinessPortfolioRequestSchema,
+    BusinessPortfolioResponseSchema,
     CampaignListResponseSchema,
     CampaignRequestSchema,
     CampaignResponseSchema,
@@ -19,7 +19,7 @@ from src.facebook_autoregs.schemas import (
     ExecutorRequestSchema,
     ExecutorResponseSchema,
 )
-from src.facebook_autoregs.services import AdCabinetService, BusinessManagerService, CampaignService, ExecutorService
+from src.facebook_autoregs.services import AdCabinetService, BusinessPortfolioService, CampaignService, ExecutorService
 
 blueprint = Blueprint('extension_facebook_autoregs', __name__, description='Facebook Autoregs Extension')
 
@@ -71,71 +71,71 @@ class Executor(MethodView):
         return humps.camelize(executor.to_dict())
 
 
-@blueprint.route('/business-managers')
-class BusinessManagers(MethodView):
+@blueprint.route('/business-portfolios')
+class BusinessPosrfolios(MethodView):
     @blueprint.arguments(PaginationRequestSchema, location='query')
-    @blueprint.response(200, BusinessManagerListResponseSchema)
+    @blueprint.response(200, BusinessPortfolioListResponseSchema)
     @auth.login_required
     def get(self, parameters_payload):
-        business_manager_service = container.get(BusinessManagerService)
-        business_managers = business_manager_service.list(
+        business_portfolio_service = container.get(BusinessPortfolioService)
+        business_portfolios = business_portfolio_service.list(
             parameters_payload['page'],
             parameters_payload['page_size'],
             parameters_payload['sort_by'],
             parameters_payload['sort_order'],
         )
-        count = business_manager_service.count()
+        count = business_portfolio_service.count()
 
         return {
-            'content': [humps.camelize(b.to_dict()) for b in business_managers],
+            'content': [humps.camelize(b.to_dict()) for b in business_portfolios],
             'pagination': parameters_payload | {'total': count},
         }
 
-    @blueprint.arguments(BusinessManagerRequestSchema)
-    @blueprint.response(201, BusinessManagerResponseSchema)
+    @blueprint.arguments(BusinessPortfolioRequestSchema)
+    @blueprint.response(201, BusinessPortfolioResponseSchema)
     @auth.login_required
-    def post(self, business_manager_payload):
-        business_manager_service = container.get(BusinessManagerService)
-        business_manager = business_manager_service.create(
-            business_manager_payload['name'], business_manager_payload['isBanned']
+    def post(self, business_portfolio_payload):
+        business_portfolio_service = container.get(BusinessPortfolioService)
+        business_portfolio = business_portfolio_service.create(
+            business_portfolio_payload['name'], business_portfolio_payload['isBanned']
         )
-        return humps.camelize(business_manager.to_dict())
+        return humps.camelize(business_portfolio.to_dict())
 
 
-@blueprint.route('/business-managers/<int:business_manager_id>')
-class BusinessManager(MethodView):
-    @blueprint.response(200, BusinessManagerResponseSchema)
+@blueprint.route('/business-portfolios/<int:business_portfolio_id>')
+class BusinessPortfolio(MethodView):
+    @blueprint.response(200, BusinessPortfolioResponseSchema)
     @auth.login_required
-    def get(self, business_manager_id):
-        business_manager_service = container.get(BusinessManagerService)
-        business_manager = business_manager_service.get(business_manager_id)
-        return humps.camelize(business_manager.to_dict())
+    def get(self, business_portfolio_id):
+        business_portfolio_service = container.get(BusinessPortfolioService)
+        business_portfolio = business_portfolio_service.get(business_portfolio_id)
+        return humps.camelize(business_portfolio.to_dict())
 
-    @blueprint.arguments(BusinessManagerRequestSchema)
-    @blueprint.response(200, BusinessManagerResponseSchema)
+    @blueprint.arguments(BusinessPortfolioRequestSchema)
+    @blueprint.response(200, BusinessPortfolioResponseSchema)
     @auth.login_required
-    def patch(self, business_manager_payload, business_manager_id):
-        business_manager_service = container.get(BusinessManagerService)
-        business_manager = business_manager_service.update(
-            business_manager_id, business_manager_payload.get('name'), business_manager_payload.get('isBanned')
+    def patch(self, business_portfolio_payload, business_portfolio_id):
+        business_portfolio_service = container.get(BusinessPortfolioService)
+        business_portfolio = business_portfolio_service.update(
+            business_portfolio_id, business_portfolio_payload.get('name'), business_portfolio_payload.get('isBanned')
         )
-        return humps.camelize(business_manager.to_dict())
+        return humps.camelize(business_portfolio.to_dict())
 
 
-@blueprint.route('/business-managers/<int:business_manager_id>/executors/<int:executor_id>')
-class BusinessManagerAssignExecutor(MethodView):
-    @blueprint.response(201, BusinessManagerResponseSchema)
+@blueprint.route('/business-portfolios/<int:business_portfolio_id>/executors/<int:executor_id>')
+class BusinessPortfolioAssignExecutor(MethodView):
+    @blueprint.response(201, BusinessPortfolioResponseSchema)
     @auth.login_required
-    def post(self, business_manager_id, executor_id):
-        business_manager_service = container.get(BusinessManagerService)
-        business_manager = business_manager_service.bind_executor(business_manager_id, executor_id)
-        return humps.camelize(business_manager.to_dict())
+    def post(self, business_portfolio_id, executor_id):
+        business_portfolio_service = container.get(BusinessPortfolioService)
+        business_portfolio = business_portfolio_service.bind_executor(business_portfolio_id, executor_id)
+        return humps.camelize(business_portfolio.to_dict())
 
-    @blueprint.response(204, BusinessManagerResponseSchema)
+    @blueprint.response(204, BusinessPortfolioResponseSchema)
     @auth.login_required
-    def delete(self, business_manager_id, executor_id):
-        business_manager_service = container.get(BusinessManagerService)
-        business_manager_service.unbind_executor(business_manager_id, executor_id)
+    def delete(self, business_portfolio_id, executor_id):
+        business_portfolio_service = container.get(BusinessPortfolioService)
+        business_portfolio_service.unbind_executor(business_portfolio_id, executor_id)
 
 
 @blueprint.route('/ad-cabinets')
@@ -187,20 +187,20 @@ class AdCabinet(MethodView):
         return humps.camelize(ad_cabinet.to_dict())
 
 
-@blueprint.route('/ad-cabinets/<int:ad_cabinet_id>/business-manager/<int:business_manager_id>')
-class AdCabinetAssignBusinessManager(MethodView):
+@blueprint.route('/ad-cabinets/<int:ad_cabinet_id>/business-portfolio/<int:business_portfolio_id>')
+class AdCabinetAssignBusinessPortfolio(MethodView):
     @blueprint.response(201, AdCabinetResponseSchema)
     @auth.login_required
-    def post(self, ad_cabinet_id, business_manager_id):
+    def post(self, ad_cabinet_id, business_portfolio_id):
         ad_cabinet_service = container.get(AdCabinetService)
-        ad_cabinet = ad_cabinet_service.bind_business_manager(ad_cabinet_id, business_manager_id)
+        ad_cabinet = ad_cabinet_service.bind_business_portfolio(ad_cabinet_id, business_portfolio_id)
         return humps.camelize(ad_cabinet.to_dict())
 
     @blueprint.response(204)
     @auth.login_required
-    def delete(self, ad_cabinet_id, business_manager_id):
+    def delete(self, ad_cabinet_id, business_portfolio_id):
         ad_cabinet_service = container.get(AdCabinetService)
-        ad_cabinet_service.unbind_business_manager(ad_cabinet_id, business_manager_id)
+        ad_cabinet_service.unbind_business_portfolio(ad_cabinet_id, business_portfolio_id)
 
 
 @blueprint.route('/campaigns')

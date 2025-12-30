@@ -14,7 +14,7 @@ def ad_cabinet_name():
 
 
 @pytest.fixture
-def business_manager_name():
+def business_portfolio_name():
     return 'Abd Allah ibn Abi Quhafa'
 
 
@@ -37,9 +37,9 @@ def ad_cabinet_payload(ad_cabinet_name):
 
 
 @pytest.fixture
-def business_manager_payload(business_manager_name):
+def business_portfolio_payload(business_portfolio_name):
     return {
-        'name': business_manager_name,
+        'name': business_portfolio_name,
         'is_banned': False,
         'created_at': (datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=1)).timestamp(),
     }
@@ -56,5 +56,5 @@ def ad_cabinet(write_to_db, ad_cabinet_payload):
 
 
 @pytest.fixture
-def business_manager(write_to_db, business_manager_payload):
-    return write_to_db('facebook_autoregs_business_manager', business_manager_payload)
+def business_portfolio(write_to_db, business_portfolio_payload):
+    return write_to_db('facebook_autoregs_business_portfolio', business_portfolio_payload)

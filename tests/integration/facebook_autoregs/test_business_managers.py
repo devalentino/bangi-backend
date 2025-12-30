@@ -1,3 +1,4 @@
+from datetime import date, datetime, time, timedelta
 from unittest import mock
 
 import pytest
@@ -182,3 +183,74 @@ class TestBusinessPortfolioWithExecutorAndAdCabinet:
                 }
             ],
         }
+
+
+class TestBusinessPortfolioManageAccessUrls:
+    @pytest.fixture
+    def access_url(self, business_portfolio, timestamp, write_to_db):
+        return write_to_db(
+            'facebook_autoregs_business_portfolio_access_url',
+            {
+                'business_portfolio_id': business_portfolio['id'],
+                'url': 'http://localhost',
+                'expires_at': timestamp + 30 * 24 * 60 * 60,
+            },
+        )
+
+    def test_get_access_urls(self, client, authorization, access_url):
+        response = client.get(
+            f'/api/v2/facebook/autoregs/business-portfolios/{access_url["business_portfolio_id"]}/access-urls',
+            headers={'Authorization': authorization},
+        )
+        assert response.status_code == 200, response.text
+        assert response.json == {
+            'content': [
+                {
+                    'id': access_url['id'],
+                    'url': access_url['url'],
+                    'expiresAt': date.fromtimestamp(access_url['expires_at']).isoformat(),
+                }
+            ],
+            'pagination': {'page': 1, 'page_size': 20, 'sort_by': 'id', 'sort_order': 'asc', 'total': 1},
+        }
+
+    def test_create_access_url(self, client, authorization, business_portfolio, read_from_db):
+        expires_at = (datetime.now() + timedelta(days=30)).date()
+
+        request_payload = {
+            'url': 'http://localhost',
+            'expiresAt': expires_at.isoformat(),
+        }
+        response = client.post(
+            f'/api/v2/facebook/autoregs/business-portfolios/{business_portfolio["id"]}/access-urls',
+            headers={'Authorization': authorization},
+            json=request_payload,
+        )
+        assert response.status_code == 201, response.text
+        assert response.json == {
+            'id': mock.ANY,
+            'url': request_payload['url'],
+            'expiresAt': request_payload['expiresAt'],
+        }
+
+        db_payload = read_from_db('facebook_autoregs_business_portfolio_access_url')
+        assert db_payload == {
+            'id': mock.ANY,
+            'created_at': mock.ANY,
+            'business_portfolio_id': business_portfolio['id'],
+            'url': request_payload['url'],
+            'expires_at': datetime.combine(expires_at, time.min).timestamp(),
+        }
+
+    def test_delete_access_url(self, client, authorization, access_url, read_from_db):
+        response = client.delete(
+            (
+                '/api/v2/facebook/autoregs/business-portfolios'
+                f'/{access_url["business_portfolio_id"]}/access-urls/{access_url["id"]}'
+            ),
+            headers={'Authorization': authorization},
+        )
+        assert response.status_code == 204, response.text
+
+        db_payload = read_from_db('facebook_autoregs_business_portfolio_access_url')
+        assert db_payload is None

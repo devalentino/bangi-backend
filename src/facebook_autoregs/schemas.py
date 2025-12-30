@@ -70,3 +70,17 @@ class CampaignResponseSchema(Schema):
 class CampaignListResponseSchema(Schema):
     content = fields.Nested(CampaignResponseSchema(many=True), required=True)
     pagination = fields.Nested(PaginationResponseSchema, required=True)
+
+
+class BusinessPortfolioAccessUrlRequestSchema(Schema):
+    url = fields.String(required=True)
+    expiresAt = fields.Date(required=True)
+
+
+class BusinessPortfolioAccessUrlResponseSchema(BusinessPortfolioAccessUrlRequestSchema):
+    id = fields.Integer(required=True)
+
+
+class BusinessPortfolioAccessUrlListResponseSchema(Schema):
+    content = fields.Nested(BusinessPortfolioAccessUrlResponseSchema(many=True), required=True)
+    pagination = fields.Nested(PaginationResponseSchema, required=True)

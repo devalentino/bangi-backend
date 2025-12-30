@@ -1,10 +1,12 @@
+from datetime import datetime, time
+
 from wireup import service
 
 from peewee import fn
 from src.core.enums import CostModel, SortOrder
 from src.core.services import CampaignService as CoreCampaignService
 from src.facebook_autoregs import exceptions
-from src.facebook_autoregs.entities import AdCabinet, BusinessPortfolio, Campaign, Executor
+from src.facebook_autoregs.entities import AdCabinet, BusinessPortfolio, BusinessPortfolioAccessUrl, Campaign, Executor
 
 
 @service
@@ -95,6 +97,39 @@ class BusinessPortfolioService:
         business_portfolio.save()
 
         return business_portfolio
+
+    def create_access_url(self, business_portfolio_id, url, expires_at):
+        business_portfolio = self.get(business_portfolio_id)
+        expires_at_timestamp = datetime.combine(expires_at, time.min).timestamp()
+        access_url = BusinessPortfolioAccessUrl(
+            business_portfolio=business_portfolio, url=url, expires_at=expires_at_timestamp
+        )
+        access_url.save()
+        return access_url
+
+    def list_access_urls(self, page, page_size, sort_by, sort_order, business_portfolio_id):
+        order_by = getattr(BusinessPortfolioAccessUrl, sort_by)
+        if sort_order == SortOrder.desc:
+            order_by = order_by.desc()
+
+        return [
+            a
+            for a in BusinessPortfolioAccessUrl.select()
+            .where(BusinessPortfolioAccessUrl.business_portfolio == business_portfolio_id)
+            .order_by(order_by)
+            .limit(page_size)
+            .offset(page - 1)
+        ]
+
+    def count_access_urls(self):
+        return BusinessPortfolioAccessUrl.select(fn.count(BusinessPortfolioAccessUrl.id)).scalar()
+
+    def delete_access_url(self, business_portfolio_id, access_url_id):
+        query = BusinessPortfolioAccessUrl.delete().where(
+            (BusinessPortfolioAccessUrl.id == access_url_id)
+            & (BusinessPortfolioAccessUrl.business_portfolio == business_portfolio_id)
+        )
+        query.execute()
 
 
 @service

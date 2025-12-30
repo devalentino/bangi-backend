@@ -1,3 +1,5 @@
+from datetime import date
+
 import humps
 from flask.views import MethodView
 
@@ -9,6 +11,9 @@ from src.facebook_autoregs.schemas import (
     AdCabinetListResponseSchema,
     AdCabinetRequestSchema,
     AdCabinetResponseSchema,
+    BusinessPortfolioAccessUrlListResponseSchema,
+    BusinessPortfolioAccessUrlRequestSchema,
+    BusinessPortfolioAccessUrlResponseSchema,
     BusinessPortfolioListResponseSchema,
     BusinessPortfolioRequestSchema,
     BusinessPortfolioResponseSchema,
@@ -136,6 +141,47 @@ class BusinessPortfolioAssignExecutor(MethodView):
     def delete(self, business_portfolio_id, executor_id):
         business_portfolio_service = container.get(BusinessPortfolioService)
         business_portfolio_service.unbind_executor(business_portfolio_id, executor_id)
+
+
+@blueprint.route('/business-portfolios/<int:business_portfolio_id>/access-urls')
+class BusinessPortfolioAccessUrls(MethodView):
+    @blueprint.arguments(PaginationRequestSchema, location='query')
+    @blueprint.response(200, BusinessPortfolioAccessUrlListResponseSchema)
+    @auth.login_required
+    def get(self, parameters_payload, business_portfolio_id):
+        business_portfolio_service = container.get(BusinessPortfolioService)
+        access_urls = business_portfolio_service.list_access_urls(
+            parameters_payload['page'],
+            parameters_payload['page_size'],
+            parameters_payload['sort_by'],
+            parameters_payload['sort_order'],
+            business_portfolio_id,
+        )
+        count = business_portfolio_service.count_access_urls()
+
+        return {
+            'content': [humps.camelize(a.to_dict()) for a in access_urls],
+            'pagination': parameters_payload | {'total': count},
+        }
+
+    @blueprint.arguments(BusinessPortfolioAccessUrlRequestSchema)
+    @blueprint.response(201, BusinessPortfolioAccessUrlResponseSchema)
+    @auth.login_required
+    def post(self, access_url_payload, business_portfolio_id):
+        business_portfolio_service = container.get(BusinessPortfolioService)
+        access_url = business_portfolio_service.create_access_url(
+            business_portfolio_id, access_url_payload['url'], access_url_payload['expiresAt']
+        )
+        return humps.camelize(access_url.to_dict() | {'expiresAt': date.fromtimestamp(access_url.expires_at)})
+
+
+@blueprint.route('/business-portfolios/<int:business_portfolio_id>/access-urls/<int:access_url_id>')
+class BusinessPortfolioAccessUrl(MethodView):
+    @blueprint.response(204)
+    @auth.login_required
+    def delete(self, business_portfolio_id, access_url_id):
+        business_portfolio_service = container.get(BusinessPortfolioService)
+        business_portfolio_service.delete_access_url(business_portfolio_id, access_url_id)
 
 
 @blueprint.route('/ad-cabinets')

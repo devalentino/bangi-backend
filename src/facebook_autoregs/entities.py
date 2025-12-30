@@ -1,6 +1,6 @@
 from playhouse.shortcuts import model_to_dict
 
-from peewee import BooleanField, CharField, ForeignKeyField, ManyToManyField
+from peewee import BooleanField, CharField, ForeignKeyField, ManyToManyField, TimestampField
 from src.core.entities import Campaign as CoreCampaign
 from src.core.entities import Entity
 
@@ -59,12 +59,13 @@ class Campaign(Entity):
         table_name = f'{TABLE_NAME_PREFIX}ad_campaign'
 
 
-class BusinessPortfolioAccessLink(Entity):
-    business_portfolio = ForeignKeyField(BusinessPortfolio, backref='access_links', null=True)
-    link = CharField()
+class BusinessPortfolioAccessUrl(Entity):
+    business_portfolio = ForeignKeyField(BusinessPortfolio, backref='access_urls', null=True)
+    url = CharField()
+    expires_at = TimestampField(null=True, utc=True)
 
     class Meta:
-        table_name = f'{TABLE_NAME_PREFIX}business_portfolio_access_link'
+        table_name = f'{TABLE_NAME_PREFIX}business_portfolio_access_url'
 
 
 BusinessPortfolioExecutor = BusinessPortfolio.executors.get_through_model()

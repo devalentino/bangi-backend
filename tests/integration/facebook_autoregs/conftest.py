@@ -77,3 +77,18 @@ def business_portfolio(write_to_db, business_portfolio_payload):
 @pytest.fixture
 def business_page(write_to_db, business_page_payload):
     return write_to_db('facebook_autoregs_business_page', business_page_payload)
+
+
+@pytest.fixture
+def campaign_fa_payload(campaign, ad_cabinet, executor, business_page):
+    return {
+        'core_campaign_id': campaign['id'],
+        'ad_cabinet_id': ad_cabinet['id'],
+        'executor_id': executor['id'],
+        'business_page_id': business_page['id'],
+    }
+
+
+@pytest.fixture
+def campaign_fa(write_to_db, campaign_fa_payload):
+    return write_to_db('facebook_autoregs_ad_campaign', campaign_fa_payload)

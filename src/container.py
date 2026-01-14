@@ -10,6 +10,7 @@ from src.core.services import CampaignService
 from src.facebook_autoregs.services import AdCabinetService as FacebookAutoregsAdCabinetService
 from src.facebook_autoregs.services import BusinessPageService as FacebookAutoregsBusinessPageService
 from src.facebook_autoregs.services import BusinessPortfolioService as FacebookAutoregsBusinessPortfolioService
+from src.facebook_autoregs.services import CampaignService as FacebookAutoregsCampaignService
 from src.facebook_autoregs.services import ExecutorService as FacebookAutoregsExecutorService
 from src.reports.repositories import BaseReportRepository
 from src.reports.services import ReportService
@@ -33,8 +34,9 @@ container = create_sync_container(
         CampaignService,
         FacebookAutoregsAdCabinetService,
         FacebookAutoregsBusinessPageService,
-        FacebookAutoregsExecutorService,
         FacebookAutoregsBusinessPortfolioService,
+        FacebookAutoregsCampaignService,
+        FacebookAutoregsExecutorService,
         ReportService,
         TrackService,
     ],

@@ -225,6 +225,7 @@ class BusinessPageService:
         return BusinessPage.select(fn.count(BusinessPage.id)).scalar()
 
 
+@service
 class CampaignService:
     def __init__(
         self,

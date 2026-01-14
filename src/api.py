@@ -19,7 +19,7 @@ CORS(app)
 app.config['API_TITLE'] = 'Tracker API'
 app.config['API_VERSION'] = 'v2'
 app.config['OPENAPI_VERSION'] = '3.0.2'
-app.config['OPENAPI_URL_PREFIX'] = '/'
+app.config['OPENAPI_URL_PREFIX'] = '/openapi'
 app.config['OPENAPI_SWAGGER_UI_PATH'] = '/swagger-ui'
 app.config['OPENAPI_SWAGGER_UI_URL'] = 'https://cdn.jsdelivr.net/npm/swagger-ui-dist/'
 

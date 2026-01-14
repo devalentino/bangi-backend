@@ -24,9 +24,9 @@ Some examples (model - class or model name)::
 
 """
 
-import decimal
 from contextlib import suppress
 
+import decimal
 import peewee as pw
 from peewee_migrate import Migrator
 
@@ -60,6 +60,16 @@ def migrate(migrator: Migrator, database: pw.Database, *, fake=False):
 
         class Meta:
             table_name = "facebook_autoregs_ad_cabinet"
+
+    @migrator.create_model
+    class BusinessPage(pw.Model):
+        id = pw.AutoField()
+        created_at = pw.TimestampField(null=True)
+        name = pw.CharField(max_length=255)
+        is_banned = pw.BooleanField()
+
+        class Meta:
+            table_name = "facebook_autoregs_business_page"
 
     @migrator.create_model
     class BusinessPortfolioAccessUrl(pw.Model):
@@ -99,9 +109,26 @@ def migrate(migrator: Migrator, database: pw.Database, *, fake=False):
         core_campaign = pw.ForeignKeyField(column_name='core_campaign_id', field='id', model=migrator.orm['campaign'])
         ad_cabinet = pw.ForeignKeyField(column_name='ad_cabinet_id', field='id', model=migrator.orm['facebook_autoregs_ad_cabinet'])
         executor = pw.ForeignKeyField(column_name='executor_id', field='id', model=migrator.orm['facebook_autoregs_executor'])
+        business_page = pw.ForeignKeyField(column_name='business_page_id', field='id', model=migrator.orm['facebook_autoregs_business_page'])
 
         class Meta:
             table_name = "facebook_autoregs_ad_campaign"
+
+    @migrator.create_model
+    class Entity(pw.Model):
+        id = pw.AutoField()
+        created_at = pw.TimestampField(null=True)
+
+        class Meta:
+            table_name = "entity"
+
+    @migrator.create_model
+    class Model(pw.Model):
+
+        class Meta:
+            table_name = "model"
+
+    migrator.remove_model('base_model')
 
 
 def rollback(migrator: Migrator, database: pw.Database, *, fake=False):
@@ -117,6 +144,10 @@ def rollback(migrator: Migrator, database: pw.Database, *, fake=False):
         class Meta:
             table_name = "base_model"
 
+    migrator.remove_model('model')
+
+    migrator.remove_model('entity')
+
     migrator.remove_model('facebook_autoregs_ad_campaign')
 
     migrator.remove_model('facebook_autoregs_business_portfolio2executor')
@@ -124,6 +155,8 @@ def rollback(migrator: Migrator, database: pw.Database, *, fake=False):
     migrator.remove_model('facebook_autoregs_executor')
 
     migrator.remove_model('facebook_autoregs_business_portfolio_access_url')
+
+    migrator.remove_model('facebook_autoregs_business_page')
 
     migrator.remove_model('facebook_autoregs_ad_cabinet')
 

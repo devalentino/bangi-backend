@@ -20,11 +20,20 @@ from src.facebook_autoregs.schemas import (
     CampaignListResponseSchema,
     CampaignRequestSchema,
     CampaignResponseSchema,
+    BusinessPageListResponseSchema,
+    BusinessPageRequestSchema,
+    BusinessPageResponseSchema,
     ExecutorListResponseSchema,
     ExecutorRequestSchema,
     ExecutorResponseSchema,
 )
-from src.facebook_autoregs.services import AdCabinetService, BusinessPortfolioService, CampaignService, ExecutorService
+from src.facebook_autoregs.services import (
+    AdCabinetService,
+    BusinessPageService,
+    BusinessPortfolioService,
+    CampaignService,
+    ExecutorService,
+)
 
 blueprint = Blueprint('extension_facebook_autoregs', __name__, description='Facebook Autoregs Extension')
 
@@ -274,7 +283,12 @@ class Campaigns(MethodView):
     @auth.login_required
     def post(self, campaign_payload):
         campaign_service = container.get(CampaignService)
-        campaign_service.create(campaign_payload['name'])
+        campaign_service.create(
+            campaign_payload['name'],
+            campaign_payload['adCabinetId'],
+            campaign_payload['executorId'],
+            campaign_payload['businessPageId'],
+        )
 
 
 @blueprint.route('/campaigns/<int:campaign_id>')
@@ -298,4 +312,54 @@ class Campaign(MethodView):
             currency=campaign_payload.get('currency'),
             ad_cabinet_id=campaign_payload.get('adCabinetId'),
             executor_id=campaign_payload.get('executorId'),
+            business_page_id=campaign_payload.get('businessPageId'),
         )
+
+
+@blueprint.route('/business-pages')
+class BusinessPages(MethodView):
+    @blueprint.arguments(PaginationRequestSchema, location='query')
+    @blueprint.response(200, BusinessPageListResponseSchema)
+    @auth.login_required
+    def get(self, parameters_payload):
+        business_page_service = container.get(BusinessPageService)
+        business_pages = business_page_service.list(
+            parameters_payload['page'],
+            parameters_payload['page_size'],
+            parameters_payload['sort_by'],
+            parameters_payload['sort_order'],
+        )
+        count = business_page_service.count()
+
+        return {
+            'content': [humps.camelize(bp.to_dict()) for bp in business_pages],
+            'pagination': parameters_payload | {'total': count},
+        }
+
+    @blueprint.arguments(BusinessPageRequestSchema)
+    @blueprint.response(201, BusinessPageResponseSchema)
+    @auth.login_required
+    def post(self, business_page_payload):
+        business_page_service = container.get(BusinessPageService)
+        business_page = business_page_service.create(business_page_payload['name'], business_page_payload['isBanned'])
+        return humps.camelize(business_page.to_dict())
+
+
+@blueprint.route('/business-pages/<int:business_page_id>')
+class BusinessPage(MethodView):
+    @blueprint.response(200, BusinessPageResponseSchema)
+    @auth.login_required
+    def get(self, business_page_id):
+        business_page_service = container.get(BusinessPageService)
+        business_page = business_page_service.get(business_page_id)
+        return humps.camelize(business_page.to_dict())
+
+    @blueprint.arguments(BusinessPageRequestSchema)
+    @blueprint.response(200, BusinessPageResponseSchema)
+    @auth.login_required
+    def patch(self, business_page_payload, business_page_id):
+        business_page_service = container.get(BusinessPageService)
+        business_page = business_page_service.update(
+            business_page_id, business_page_payload.get('name'), business_page_payload.get('isBanned')
+        )
+        return humps.camelize(business_page.to_dict())

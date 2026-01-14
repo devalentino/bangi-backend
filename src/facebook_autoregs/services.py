@@ -3,10 +3,17 @@ from datetime import datetime, time
 from wireup import service
 
 from peewee import fn
-from src.core.enums import CostModel, SortOrder
+from src.core.enums import CostModel, Currency, SortOrder
 from src.core.services import CampaignService as CoreCampaignService
 from src.facebook_autoregs import exceptions
-from src.facebook_autoregs.entities import AdCabinet, BusinessPortfolio, BusinessPortfolioAccessUrl, Campaign, Executor
+from src.facebook_autoregs.entities import (
+    AdCabinet,
+    BusinessPage,
+    BusinessPortfolio,
+    BusinessPortfolioAccessUrl,
+    Campaign,
+    Executor,
+)
 
 
 @service
@@ -185,15 +192,50 @@ class AdCabinetService:
         ad_cabinet.save()
 
 
+@service
+class BusinessPageService:
+    def get(self, id):
+        return BusinessPage.get_by_id(id)
+
+    def list(self, page, page_size, sort_by, sort_order):
+        order_by = getattr(BusinessPage, sort_by)
+        if sort_order == SortOrder.desc:
+            order_by = order_by.desc()
+
+        return [bp for bp in BusinessPage.select().order_by(order_by).limit(page_size).offset(page - 1)]
+
+    def create(self, name, is_banned):
+        business_page = BusinessPage(name=name, is_banned=is_banned)
+        business_page.save()
+        return business_page
+
+    def update(self, business_page_id, name=None, is_banned=None):
+        business_page = BusinessPage.get_by_id(business_page_id)
+
+        if name:
+            business_page.name = name
+
+        if is_banned is not None:
+            business_page.is_banned = is_banned
+
+        business_page.save()
+        return business_page
+
+    def count(self):
+        return BusinessPage.select(fn.count(BusinessPage.id)).scalar()
+
+
 class CampaignService:
     def __init__(
         self,
         ad_cabinet_service: AdCabinetService,
         executor_service: ExecutorService,
+        business_page_service: BusinessPageService,
         core_campaign_service: CoreCampaignService,
     ):
         self.ad_cabinet_service = ad_cabinet_service
         self.executor_service = executor_service
+        self.business_page_service = business_page_service
         self.core_campaign_service = core_campaign_service
 
     def get(self, id):
@@ -206,17 +248,40 @@ class CampaignService:
 
         return [ac for ac in Campaign.select().order_by(order_by).limit(page_size).offset(page - 1)]
 
-    def create(self, name, cost_value, currency, ad_cabinet_id, executor_id):
+    def create(
+        self,
+        name,
+        ad_cabinet_id,
+        executor_id,
+        business_page_id,
+        cost_value=0,
+        currency=Currency.usd.value,
+    ):
         core_campaign = self.core_campaign_service.create(name, CostModel.cpa.value, cost_value, currency)
 
         ad_cabinet = self.ad_cabinet_service.get(ad_cabinet_id)
         executor = self.executor_service.get(executor_id)
+        business_page = self.business_page_service.get(business_page_id)
 
-        campaign = Campaign(core_campaign=core_campaign, ad_cabinet=ad_cabinet, executor=executor)
+        campaign = Campaign(
+            core_campaign=core_campaign,
+            ad_cabinet=ad_cabinet,
+            executor=executor,
+            business_page=business_page,
+        )
         campaign.save()
         return campaign
 
-    def update(self, campaign_id, name=None, cost_value=None, currency=None, ad_cabinet_id=None, executor_id=None):
+    def update(
+        self,
+        campaign_id,
+        name=None,
+        cost_value=None,
+        currency=None,
+        ad_cabinet_id=None,
+        executor_id=None,
+        business_page_id=None,
+    ):
         campaign = self.get(campaign_id)
 
         self.core_campaign_service.update(campaign.core_campaign.id, name, cost_value, currency)
@@ -228,6 +293,10 @@ class CampaignService:
         if executor_id:
             executor = self.executor_service.get(executor_id)
             campaign.executor = executor
+
+        if business_page_id:
+            business_page = self.business_page_service.get(business_page_id)
+            campaign.business_page = business_page
 
         campaign.save()
         return campaign

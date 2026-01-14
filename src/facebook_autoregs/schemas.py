@@ -54,10 +54,25 @@ class BusinessPortfolioListResponseSchema(Schema):
     pagination = fields.Nested(PaginationResponseSchema, required=True)
 
 
+class BusinessPageRequestSchema(Schema):
+    name = fields.String(required=True)
+    isBanned = fields.Boolean(required=True)
+
+
+class BusinessPageResponseSchema(BusinessPageRequestSchema):
+    id = fields.Integer(required=True)
+
+
+class BusinessPageListResponseSchema(Schema):
+    content = fields.Nested(BusinessPageResponseSchema(many=True), required=True)
+    pagination = fields.Nested(PaginationResponseSchema, required=True)
+
+
 class CampaignRequestSchema(Schema):
     name = fields.String(required=True)
     executorId = fields.Integer(required=True)
     adCabinetId = fields.Integer(required=True)
+    businessPageId = fields.Integer(required=True)
 
 
 class CampaignResponseSchema(Schema):
@@ -65,6 +80,7 @@ class CampaignResponseSchema(Schema):
     name = fields.String(required=True)
     executor = fields.Nested(ExecutorResponseSchema, required=True)
     adCabinet = fields.Nested(AdCabinetResponseSchema, required=True)
+    businessPage = fields.Nested(BusinessPageResponseSchema, required=True)
 
 
 class CampaignListResponseSchema(Schema):

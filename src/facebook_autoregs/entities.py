@@ -50,10 +50,19 @@ class AdCabinet(Entity):
         return model_to_dict(self) | {'business_portfolio': business_portfolio_dict}
 
 
+class BusinessPage(Entity):
+    name = CharField()
+    is_banned = BooleanField()
+
+    class Meta:
+        table_name = f'{TABLE_NAME_PREFIX}business_page'
+
+
 class Campaign(Entity):
     core_campaign = ForeignKeyField(CoreCampaign, backref='core_campaign')
     ad_cabinet = ForeignKeyField(AdCabinet, backref='ad_cabinet')
     executor = ForeignKeyField(Executor, backref='executor')
+    business_page = ForeignKeyField(BusinessPage, backref='business_page')
 
     class Meta:
         table_name = f'{TABLE_NAME_PREFIX}ad_campaign'

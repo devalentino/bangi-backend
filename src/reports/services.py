@@ -18,8 +18,8 @@ class ReportService:
             report.append(
                 {
                     'date': date,
-                    'clicks_count': clicks_count,
-                    'leads_count': leads_count,
+                    'clicks': clicks_count,
+                    'leads': leads_count,
                     'lead_status': lead_status,
                     **dict(zip(parameters['group_parameters'], parameters_values)),
                 }

@@ -39,6 +39,7 @@ class CampaignCreateRequestSchema(Schema):
     costModel = fields.Enum(CostModel, required=True)
     costValue = fields.Decimal(places=2, rounding=decimal.ROUND_DOWN, required=True)
     currency = fields.Enum(Currency, required=True)
+    statusMapper = fields.Dict(allow_none=True, load_default=None)
 
 
 class CampaignUpdateRequestSchema(Schema):
@@ -46,6 +47,7 @@ class CampaignUpdateRequestSchema(Schema):
     costModel = fields.Enum(CostModel)
     costValue = fields.Decimal(places=2, rounding=decimal.ROUND_DOWN)
     currency = fields.Enum(Currency)
+    statusMapper = fields.Dict(allow_none=True, load_default=None)
 
 
 class CampaignResponseSchema(Schema):
@@ -54,6 +56,7 @@ class CampaignResponseSchema(Schema):
     costModel = fields.String(required=True)
     costValue = fields.Decimal(places=2, rounding=decimal.ROUND_DOWN, required=True)
     currency = fields.String(required=True)
+    statusMapper = fields.Dict(allow_none=True)
 
 
 class CampaignListResponseSchema(Schema):

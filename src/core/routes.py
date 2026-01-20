@@ -47,6 +47,7 @@ class Campaigns(MethodView):
             campaign_payload['costModel'],
             campaign_payload['costValue'],
             campaign_payload['currency'],
+            campaign_payload.get('statusMapper'),
         )
 
 
@@ -70,6 +71,7 @@ class Campaign(MethodView):
             campaign_payload.get('costModel'),
             campaign_payload.get('costValue'),
             campaign_payload.get('currency'),
+            campaign_payload.get('statusMapper'),
         )
 
 

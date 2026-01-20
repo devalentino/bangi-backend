@@ -20,12 +20,18 @@ class CampaignService:
     def all(self):
         return [c for c in Campaign.select()]
 
-    def create(self, name, cost_model, cost_value, currency):
-        campaign = Campaign(name=name, cost_model=cost_model, cost_value=cost_value, currency=currency)
+    def create(self, name, cost_model, cost_value, currency, status_mapper=None):
+        campaign = Campaign(
+            name=name,
+            cost_model=cost_model,
+            cost_value=cost_value,
+            currency=currency,
+            status_mapper=status_mapper,
+        )
         campaign.save()
         return campaign
 
-    def update(self, campaign_id, name=None, cost_model=None, cost_value=None, currency=None):
+    def update(self, campaign_id, name=None, cost_model=None, cost_value=None, currency=None, status_mapper=None):
         campaign = Campaign.get_by_id(campaign_id)
 
         if name:
@@ -39,6 +45,9 @@ class CampaignService:
 
         if currency:
             campaign.currency = currency
+
+        if status_mapper is not None:
+            campaign.status_mapper = status_mapper
 
         campaign.save()
 

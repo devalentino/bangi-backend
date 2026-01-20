@@ -16,6 +16,7 @@ from peewee import (
     TimestampField,
 )
 from src.core.enums import CostModel, Currency
+from src.peewee import JSONField
 
 database_proxy = DatabaseProxy()
 
@@ -44,6 +45,7 @@ class Campaign(Entity):
     cost_model = CharField(null=True, default=CostModel.cpa.value)
     cost_value = DecimalField(null=True, default=Decimal('0.00'))
     currency = CharField(null=True, default=Currency.usd.value)
+    status_mapper = JSONField(null=True)
 
 
 class Flow(Entity):

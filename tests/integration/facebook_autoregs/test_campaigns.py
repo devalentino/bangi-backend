@@ -43,7 +43,7 @@ def test_create_campaign(client, authorization, ad_cabinet, executor, business_p
         'cost_model': 'cpa',
         'cost_value': 0,
         'currency': 'usd',
-        'status_mapper': None,
+        'status_mapper': 'null',
         'created_at': mock.ANY,
     }
 

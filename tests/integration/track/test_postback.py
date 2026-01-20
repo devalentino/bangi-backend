@@ -2,6 +2,8 @@ import json
 from unittest import mock
 from uuid import UUID, uuid4
 
+from src.tracker.enums import Status
+
 
 class TestPostback:
     def test_track_postback__post(self, client, campaign, read_from_db):
@@ -28,6 +30,8 @@ class TestPostback:
             'click_id': click_id.hex,
             'parameters': mock.ANY,
             'status': None,
+            'cost_value': None,
+            'currency': None,
             'created_at': mock.ANY,
         }
 
@@ -67,6 +71,8 @@ class TestPostback:
             'click_id': click_id.hex,
             'parameters': mock.ANY,
             'status': None,
+            'cost_value': None,
+            'currency': None,
             'created_at': mock.ANY,
         }
 
@@ -82,11 +88,13 @@ class TestPostback:
             'tid': request_payload['tid'],
         }
 
-    def test_track_postback__maps_status(self, client, click, read_from_db):
+    def test_track_postback__maps_status(self, client, click, campaign, read_from_db):
         response = client.post(
             '/api/v2/track/postback', json={'click_id': str(UUID(click['click_id'])), 'state': 'executed'}
         )
         assert response.status_code == 201, response.text
 
         postback = read_from_db('track_postback')
-        assert postback['status'] == 'approved'
+        assert postback['status'] == Status.approved.value
+        assert postback['cost_value'] == campaign['cost_value']
+        assert postback['currency'] == campaign['currency']

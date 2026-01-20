@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from unittest import mock
 
@@ -26,7 +27,7 @@ def test_create_campaign(client, authorization, campaign_payload, read_from_db):
         'cost_model': request_payload['costModel'],
         'cost_value': request_payload['costValue'],
         'currency': request_payload['currency'],
-        'status_mapper': None,
+        'status_mapper': 'null',
         'created_at': mock.ANY,
     }
 
@@ -64,7 +65,7 @@ def test_get_campaign(client, authorization, campaign):
         'costModel': campaign['cost_model'],
         'costValue': str(campaign['cost_value'].quantize(Decimal('0.01'))),
         'currency': campaign['currency'],
-        'statusMapper': None,
+        'statusMapper': json.loads(campaign['status_mapper']),
     }
 
 

@@ -6,7 +6,7 @@ from peewee import MySQLDatabase
 from src.auth.services import AuthenticationService
 from src.core.db import database
 from src.core.entities import database_proxy
-from src.core.services import CampaignService
+from src.core.services import CampaignService, FlowService
 from src.facebook_autoregs.services import AdCabinetService as FacebookAutoregsAdCabinetService
 from src.facebook_autoregs.services import BusinessPageService as FacebookAutoregsBusinessPageService
 from src.facebook_autoregs.services import BusinessPortfolioService as FacebookAutoregsBusinessPortfolioService
@@ -32,6 +32,7 @@ container = create_sync_container(
         BaseReportRepository,
         AuthenticationService,
         CampaignService,
+        FlowService,
         FacebookAutoregsAdCabinetService,
         FacebookAutoregsBusinessPageService,
         FacebookAutoregsBusinessPortfolioService,

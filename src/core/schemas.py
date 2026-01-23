@@ -1,10 +1,10 @@
 import decimal
 
 from marshmallow import Schema as MarshmallowSchema
-from marshmallow import ValidationError, fields
+from marshmallow import ValidationError, fields, validates_schema
 
 from src.core.constants import PAGINATION_DEFAULT_PAGE_SIZE
-from src.core.enums import CostModel, Currency, SortBy, SortOrder
+from src.core.enums import CostModel, Currency, FlowActionType, SortBy, SortOrder
 
 
 class Schema(MarshmallowSchema):
@@ -67,3 +67,44 @@ class CampaignListResponseSchema(Schema):
 class FilterCampaignResponseSchema(Schema):
     id = fields.Integer(required=True)
     name = fields.String(required=True)
+
+
+class FlowUpdateRequestSchema(Schema):
+    orderValue = fields.Integer()
+    actionType = fields.Enum(FlowActionType, required=True)
+    redirectUrl = fields.Url(allow_none=True, load_default=None)
+    isEnabled = fields.Boolean()
+
+    @validates_schema
+    def validate_action(self, data, **kwargs):
+        if data.get('actionType') == FlowActionType.redirect:
+            if 'redirect_url' not in data:
+                raise ValidationError('redirectUrl is required for redirect action.', field_name='redirectUrl')
+            return
+
+    @classmethod
+    def validate_include_action_type(cls, flow_payload, landing_archive):
+        if flow_payload.get('actionType') == FlowActionType.include:
+            if landing_archive is None:
+                raise ValidationError('landingArchive is required for include action.', field_name='landingArchive')
+            if not landing_archive.filename.endswith('.zip'):
+                raise ValidationError('landingArchive must be a .zip file.', field_name='landingArchive')
+            return
+
+
+class FlowCreateRequestSchema(FlowUpdateRequestSchema):
+    campaignId = fields.Integer(required=True)
+
+
+class FlowResponseSchema(Schema):
+    id = fields.Integer(required=True)
+    campaignId = fields.Integer(required=True)
+    orderValue = fields.Integer(required=True)
+    actionType = fields.String(required=True)
+    redirectUrl = fields.String(allow_none=True)
+    isEnabled = fields.Boolean(required=True)
+
+
+class FlowListResponseSchema(Schema):
+    content = fields.Nested(FlowResponseSchema(many=True), required=True)
+    pagination = fields.Nested(PaginationResponseSchema, required=True)

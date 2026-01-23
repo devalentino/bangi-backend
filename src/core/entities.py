@@ -15,7 +15,7 @@ from peewee import Model as PeeweeModel
 from peewee import (
     TimestampField,
 )
-from src.core.enums import CostModel, Currency
+from src.core.enums import CostModel, Currency, FlowActionType
 from src.peewee import JSONField
 
 database_proxy = DatabaseProxy()
@@ -52,5 +52,8 @@ class Flow(Entity):
     campaign_id = ForeignKeyField(Campaign)
 
     order_value = IntegerField(null=False)
+    action_type = CharField(default=FlowActionType.redirect.value)
+    redirect_url = CharField(null=True)
+    include_path = CharField(null=True)
     is_enabled = BooleanField(default=True)
     is_deleted = BooleanField(default=False)

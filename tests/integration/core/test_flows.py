@@ -1,5 +1,7 @@
 import io
+import pathlib
 import zipfile
+from unittest import mock
 
 import pytest
 
@@ -26,6 +28,72 @@ def flow(write_to_db, campaign):
             'is_deleted': False,
         },
     )
+
+
+def test_create_flow__redirect_action_success(client, authorization, campaign, read_from_db):
+    request_payload = {
+        'campaignId': campaign['id'],
+        'orderValue': 1,
+        'actionType': 'redirect',
+        'redirectUrl': 'https://example.com',
+        'isEnabled': True,
+    }
+
+    response = client.post(
+        '/api/v2/core/flows',
+        headers={'Authorization': authorization},
+        data=request_payload,
+        content_type='multipart/form-data',
+    )
+
+    assert response.status_code == 201, response.text
+
+    flow = read_from_db('flow')
+    assert flow == {
+        'id': mock.ANY,
+        'created_at': mock.ANY,
+        'campaign_id': request_payload['campaignId'],
+        'order_value': request_payload['orderValue'],
+        'action_type': request_payload['actionType'],
+        'redirect_url': request_payload['redirectUrl'],
+        'include_path': None,
+        'is_enabled': request_payload['isEnabled'],
+        'is_deleted': False,
+    }
+
+
+def test_create_flow__include_action_success(client, authorization, campaign, read_from_db, monkeypatch, tmp_path):
+    monkeypatch.setenv('LANDING_PAGES_BASE_PATH', str(tmp_path))
+    request_payload = {
+        'campaignId': campaign['id'],
+        'orderValue': 2,
+        'actionType': 'include',
+        'landingArchive': (_zip_bytes(), 'landing.zip'),
+    }
+
+    response = client.post(
+        '/api/v2/core/flows',
+        headers={'Authorization': authorization},
+        data=request_payload,
+        content_type='multipart/form-data',
+    )
+
+    assert response.status_code == 201, response.text
+
+    flow = read_from_db('flow')
+    expected_include_path = str(pathlib.Path(tmp_path) / str(flow['id']))
+    assert flow == {
+        'id': mock.ANY,
+        'created_at': mock.ANY,
+        'campaign_id': request_payload['campaignId'],
+        'order_value': request_payload['orderValue'],
+        'action_type': request_payload['actionType'],
+        'redirect_url': None,
+        'include_path': expected_include_path,
+        'is_enabled': True,
+        'is_deleted': False,
+    }
+    assert (pathlib.Path(flow['include_path']) / 'index.html').exists()
 
 
 def test_create_flow__requires_redirect_url_for_redirect_action(client, authorization, campaign):
@@ -88,6 +156,72 @@ def test_create_flow__rejects_non_zip_landing_archive(client, authorization, cam
         'errors': {'form': {'landingArchive': ['landingArchive must be a .zip file.']}},
         'status': 'Unprocessable Entity',
     }
+
+
+def test_update_flow__redirect_action_success(client, authorization, flow, read_from_db):
+    request_payload = {
+        'orderValue': 3,
+        'actionType': 'redirect',
+        'redirectUrl': 'https://example.org',
+        'isEnabled': False,
+    }
+
+    response = client.patch(
+        f'/api/v2/core/flows/{flow["id"]}',
+        headers={'Authorization': authorization},
+        data=request_payload,
+        content_type='multipart/form-data',
+    )
+
+    assert response.status_code == 200, response.text
+
+    updated = read_from_db('flow')
+    assert updated == {
+        'id': flow['id'],
+        'created_at': mock.ANY,
+        'campaign_id': flow['campaign_id'],
+        'order_value': request_payload['orderValue'],
+        'action_type': request_payload['actionType'],
+        'redirect_url': request_payload['redirectUrl'],
+        'include_path': None,
+        'is_enabled': request_payload['isEnabled'],
+        'is_deleted': False,
+    }
+
+
+def test_update_flow__include_action_success(client, authorization, flow, read_from_db, monkeypatch, tmp_path):
+    monkeypatch.setenv('LANDING_PAGES_BASE_PATH', str(tmp_path))
+    request_payload = {
+        'orderValue': 4,
+        'actionType': 'include',
+        'redirectUrl': None,
+        'isEnabled': True,
+        'landingArchive': (_zip_bytes(), 'landing.zip'),
+    }
+
+    response = client.patch(
+        f'/api/v2/core/flows/{flow["id"]}',
+        headers={'Authorization': authorization},
+        data=request_payload,
+        content_type='multipart/form-data',
+    )
+
+    assert response.status_code == 200, response.text
+
+    updated = read_from_db('flow')
+    expected_include_path = str(pathlib.Path(tmp_path) / str(updated['id']))
+    assert updated == {
+        'id': flow['id'],
+        'created_at': mock.ANY,
+        'campaign_id': flow['campaign_id'],
+        'order_value': request_payload['orderValue'],
+        'action_type': request_payload['actionType'],
+        'redirect_url': request_payload['redirectUrl'],
+        'include_path': expected_include_path,
+        'is_enabled': request_payload['isEnabled'],
+        'is_deleted': False,
+    }
+    assert (pathlib.Path(updated['include_path']) / 'index.html').exists()
 
 
 def test_update_flow__requires_redirect_url_for_redirect_action(client, authorization, flow):

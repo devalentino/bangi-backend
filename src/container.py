@@ -26,6 +26,7 @@ container = create_sync_container(
         'BASIC_AUTHENTICATION_USERNAME': os.getenv('BASIC_AUTHENTICATION_USERNAME'),
         'BASIC_AUTHENTICATION_PASSWORD': os.getenv('BASIC_AUTHENTICATION_PASSWORD'),
         'REPORT_GAP_SECONDS': os.getenv('REPORT_GAP_SECONDS', 30 * 60 * 60),
+        'LANDING_PAGES_BASE_PATH': os.getenv('LANDING_PAGES_BASE_PATH')
     },
     services=[
         database,

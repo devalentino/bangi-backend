@@ -1,15 +1,19 @@
+import logging
 import os
 import shutil
 import tempfile
 import zipfile
+from typing import Annotated
 
-from wireup import service
+from wireup import service, Inject
 
 from peewee import fn
 from src.core.entities import Campaign, Flow
 from src.core.enums import FlowActionType, SortOrder
-from src.core.exceptions import ApplicationError
+from src.core.exceptions import LandingPageUploadError
 
+
+logger = logging.getLogger(__name__)
 
 @service
 class CampaignService:
@@ -65,17 +69,14 @@ class CampaignService:
 
 @service
 class FlowService:
-    def _store_landing_archive(self, flow, landing_archive):
-        base_path = os.getenv('INCLUDE_LANDING_BASE_PATH')
-        if not base_path:
-            error = ApplicationError()
-            error.message = 'INCLUDE_LANDING_BASE_PATH is not set.'
-            raise error
+    def __init__(self, landing_pages_base_path: Annotated[str, Inject(param='LANDING_PAGES_BASE_PATH')]):
+        self.landing_pages_base_path = landing_pages_base_path
+    def _store_landing_archive(self, flow_id, landing_archive):
+        if not self.landing_pages_base_path:
+            logger.error('Landing archives base path is not configured')
+            raise LandingPageUploadError()
 
-        if landing_archive is None:
-            return
-
-        flow_dir = os.path.join(base_path, str(flow.id))
+        flow_dir = os.path.join(self.landing_pages_base_path, str(flow_id))
         if os.path.exists(flow_dir):
             shutil.rmtree(flow_dir)
         os.makedirs(flow_dir, exist_ok=True)
@@ -90,7 +91,7 @@ class FlowService:
         finally:
             os.remove(temp_path)
 
-        flow.include_path = flow_dir
+        return flow_dir
 
     def get(self, id):
         return Flow.get_by_id(id)
@@ -114,18 +115,20 @@ class FlowService:
         is_enabled=True,
         landing_archive=None,
     ):
-        action_type_value = self._normalize_action_type(action_type)
         flow = Flow(
             campaign_id=campaign_id,
             order_value=order_value,
-            action_type=action_type_value,
+            action_type=action_type,
             redirect_url=redirect_url,
             is_enabled=is_enabled,
         )
         flow.save()
-        if action_type_value == FlowActionType.include:
-            self._store_landing_archive(flow, landing_archive)
+
+        if action_type == FlowActionType.include:
+            landing_path = self._store_landing_archive(flow, landing_archive)
+            flow.landing_path = landing_path
             flow.save()
+
         return flow
 
     def update(
@@ -147,7 +150,7 @@ class FlowService:
         if action_type_value == FlowActionType.include:
             self._store_landing_archive(flow, landing_archive)
         elif action_type_value == FlowActionType.redirect:
-            flow.include_path = None
+            flow.landing_path = None
 
         flow.save()
         return flow

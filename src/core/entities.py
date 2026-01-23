@@ -54,6 +54,6 @@ class Flow(Entity):
     order_value = IntegerField(null=False)
     action_type = CharField(default=FlowActionType.redirect.value)
     redirect_url = CharField(null=True)
-    include_path = CharField(null=True)
+    landing_path = CharField(null=True)
     is_enabled = BooleanField(default=True)
     is_deleted = BooleanField(default=False)

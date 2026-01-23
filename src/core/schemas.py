@@ -78,7 +78,7 @@ class FlowUpdateRequestSchema(Schema):
     @validates_schema
     def validate_action(self, data, **kwargs):
         if data.get('actionType') == FlowActionType.redirect:
-            if 'redirect_url' not in data:
+            if 'redirectUrl' not in data:
                 raise ValidationError('redirectUrl is required for redirect action.', field_name='redirectUrl')
             return
 

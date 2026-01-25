@@ -66,7 +66,7 @@ class TrackService:
         campaign = self._get_campaign_by_click_id(click_id)
         if campaign:
             status = self._map_status(parameters, campaign.status_mapper)
-            if status == Status.approved.value:
+            if status == Status.approved:
                 cost_value = campaign.cost_value
                 currency = campaign.currency
 

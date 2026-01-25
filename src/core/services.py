@@ -5,15 +5,15 @@ import tempfile
 import zipfile
 from typing import Annotated
 
-from wireup import service, Inject
+from wireup import Inject, service
 
 from peewee import fn
 from src.core.entities import Campaign, Flow
 from src.core.enums import FlowActionType, SortOrder
 from src.core.exceptions import LandingPageUploadError
 
-
 logger = logging.getLogger(__name__)
+
 
 @service
 class CampaignService:
@@ -71,6 +71,7 @@ class CampaignService:
 class FlowService:
     def __init__(self, landing_pages_base_path: Annotated[str, Inject(param='LANDING_PAGES_BASE_PATH')]):
         self.landing_pages_base_path = landing_pages_base_path
+
     def _store_landing_archive(self, flow_id, landing_archive):
         if not self.landing_pages_base_path:
             logger.error('Landing archives base path is not configured')
@@ -141,16 +142,21 @@ class FlowService:
         landing_archive=None,
     ):
         flow = Flow.get_by_id(flow_id)
-        action_type_value = self._normalize_action_type(action_type)
-        flow.order_value = order_value
-        flow.action_type = action_type_value
-        flow.redirect_url = redirect_url
-        flow.is_enabled = is_enabled
+        if order_value is not None:
+            flow.order_value = order_value
 
-        if action_type_value == FlowActionType.include:
-            self._store_landing_archive(flow, landing_archive)
-        elif action_type_value == FlowActionType.redirect:
-            flow.landing_path = None
+        if action_type is not None:
+            flow.action_type = action_type
+            flow.redirect_url = redirect_url
+
+            if action_type == FlowActionType.include:
+                landing_path = self._store_landing_archive(flow, landing_archive)
+                flow.landing_path = landing_path
+            elif action_type == FlowActionType.redirect:
+                flow.landing_path = None
+
+        if is_enabled is not None:
+            flow.is_enabled = is_enabled
 
         flow.save()
         return flow

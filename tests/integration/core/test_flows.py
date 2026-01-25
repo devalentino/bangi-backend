@@ -23,7 +23,7 @@ def flow(write_to_db, campaign):
             'order_value': 1,
             'action_type': 'redirect',
             'redirect_url': 'https://example.com',
-            'include_path': None,
+            'landing_path': None,
             'is_enabled': True,
             'is_deleted': False,
         },
@@ -56,14 +56,15 @@ def test_create_flow__redirect_action_success(client, authorization, campaign, r
         'order_value': request_payload['orderValue'],
         'action_type': request_payload['actionType'],
         'redirect_url': request_payload['redirectUrl'],
-        'include_path': None,
+        'landing_path': None,
         'is_enabled': request_payload['isEnabled'],
         'is_deleted': False,
     }
 
 
-def test_create_flow__include_action_success(client, authorization, campaign, read_from_db, monkeypatch, tmp_path):
-    monkeypatch.setenv('LANDING_PAGES_BASE_PATH', str(tmp_path))
+def test_create_flow__include_action_success(
+    client, authorization, campaign, environment, read_from_db, landing_pages_base_path
+):
     request_payload = {
         'campaignId': campaign['id'],
         'orderValue': 2,
@@ -81,7 +82,7 @@ def test_create_flow__include_action_success(client, authorization, campaign, re
     assert response.status_code == 201, response.text
 
     flow = read_from_db('flow')
-    expected_include_path = str(pathlib.Path(tmp_path) / str(flow['id']))
+    expected_landing_path = str(pathlib.Path(landing_pages_base_path) / str(flow['id']))
     assert flow == {
         'id': mock.ANY,
         'created_at': mock.ANY,
@@ -89,11 +90,11 @@ def test_create_flow__include_action_success(client, authorization, campaign, re
         'order_value': request_payload['orderValue'],
         'action_type': request_payload['actionType'],
         'redirect_url': None,
-        'include_path': expected_include_path,
-        'is_enabled': True,
-        'is_deleted': False,
+        'landing_path': expected_landing_path,
+        'is_enabled': 1,
+        'is_deleted': 0,
     }
-    assert (pathlib.Path(flow['include_path']) / 'index.html').exists()
+    assert (pathlib.Path(flow['landing_path']) / 'index.html').exists()
 
 
 def test_create_flow__requires_redirect_url_for_redirect_action(client, authorization, campaign):
@@ -183,18 +184,18 @@ def test_update_flow__redirect_action_success(client, authorization, flow, read_
         'order_value': request_payload['orderValue'],
         'action_type': request_payload['actionType'],
         'redirect_url': request_payload['redirectUrl'],
-        'include_path': None,
+        'landing_path': None,
         'is_enabled': request_payload['isEnabled'],
         'is_deleted': False,
     }
 
 
-def test_update_flow__include_action_success(client, authorization, flow, read_from_db, monkeypatch, tmp_path):
-    monkeypatch.setenv('LANDING_PAGES_BASE_PATH', str(tmp_path))
+def test_update_flow__include_action_success(
+    client, authorization, flow, environment, read_from_db, landing_pages_base_path
+):
     request_payload = {
         'orderValue': 4,
         'actionType': 'include',
-        'redirectUrl': None,
         'isEnabled': True,
         'landingArchive': (_zip_bytes(), 'landing.zip'),
     }
@@ -209,19 +210,19 @@ def test_update_flow__include_action_success(client, authorization, flow, read_f
     assert response.status_code == 200, response.text
 
     updated = read_from_db('flow')
-    expected_include_path = str(pathlib.Path(tmp_path) / str(updated['id']))
+    expected_landing_path = str(pathlib.Path(landing_pages_base_path) / str(updated['id']))
     assert updated == {
         'id': flow['id'],
         'created_at': mock.ANY,
         'campaign_id': flow['campaign_id'],
         'order_value': request_payload['orderValue'],
         'action_type': request_payload['actionType'],
-        'redirect_url': request_payload['redirectUrl'],
-        'include_path': expected_include_path,
+        'redirect_url': None,
+        'landing_path': expected_landing_path,
         'is_enabled': request_payload['isEnabled'],
         'is_deleted': False,
     }
-    assert (pathlib.Path(updated['include_path']) / 'index.html').exists()
+    assert (pathlib.Path(updated['landing_path']) / 'index.html').exists()
 
 
 def test_update_flow__requires_redirect_url_for_redirect_action(client, authorization, flow):

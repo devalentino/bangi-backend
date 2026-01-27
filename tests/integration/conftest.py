@@ -36,6 +36,11 @@ def mock_environment(mysql, landing_pages_base_path):
 
 
 @pytest.fixture(autouse=True)
+def assert_all_external_http_calls_are_mocked(respx_mock):
+    yield
+
+
+@pytest.fixture(autouse=True)
 def create_tables(mock_environment, mysql):
     db = MySQLDatabase(
         'test',
@@ -68,4 +73,4 @@ def authorization():
 def environment():
     from src.container import container
 
-    return container.params._ParameterBag__bag
+    return container.params._ConfigStore__bag

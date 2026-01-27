@@ -13,6 +13,7 @@ from peewee import (
 )
 from peewee import Model as PeeweeModel
 from peewee import (
+    TextField,
     TimestampField,
 )
 from src.core.enums import CostModel, Currency, FlowActionType
@@ -50,10 +51,9 @@ class Campaign(Entity):
 
 class Flow(Entity):
     campaign_id = ForeignKeyField(Campaign)
-
+    rule = TextField(null=True)
     order_value = IntegerField(null=False)
     action_type = CharField(default=FlowActionType.redirect.value)
     redirect_url = CharField(null=True)
-    landing_path = CharField(null=True)
     is_enabled = BooleanField(default=True)
     is_deleted = BooleanField(default=False)

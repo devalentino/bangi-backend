@@ -15,6 +15,11 @@ def status_mapper():
 
 
 @pytest.fixture
+def flow_rule():
+    return 'country == "MD"'
+
+
+@pytest.fixture
 def campaign_payload(campaign_name, status_mapper):
     return {
         'name': campaign_name,
@@ -22,4 +27,16 @@ def campaign_payload(campaign_name, status_mapper):
         'cost_value': 10,
         'currency': 'usd',
         'status_mapper': status_mapper,
+    }
+
+
+@pytest.fixture
+def flow_payload(flow_rule):
+    return {
+        'order_value': 1,
+        'rule': flow_rule,
+        'action_type': 'redirect',
+        'redirect_url': 'https://example.com',
+        'is_enabled': True,
+        'is_deleted': False,
     }

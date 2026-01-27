@@ -1,18 +1,66 @@
+import dataclasses
 import logging
 import os
 import shutil
 import tempfile
 import zipfile
-from typing import Annotated
+from typing import Annotated, Protocol
 
-from wireup import Inject, service
+import httpx
+import IP2Location
+import rule_engine
+import user_agents
+from wireup import Inject, injectable, service
 
 from peewee import fn
 from src.core.entities import Campaign, Flow
 from src.core.enums import FlowActionType, SortOrder
 from src.core.exceptions import LandingPageUploadError
+from src.core.models import Client
 
 logger = logging.getLogger(__name__)
+
+
+@injectable
+class IpLocator(Protocol):
+    def get_country(self, address):
+        pass
+
+
+@injectable(as_type=IpLocator)
+class Ip2LocationLocator:
+    def __init__(self, ip2location_db_path: Annotated[str, Inject(param='IP2LOCATION_DB_PATH')]):
+        self.ip2location = IP2Location.IP2Location(ip2location_db_path)
+
+    def get_country(self, address):
+        try:
+            country = self.ip2location.get_country_short(address)
+        except Exception:
+            logger.warning('Failed to get country by ip', extra={'address': address})
+            return None
+
+        if len(country) != 2:
+            logger.warning('Failed to get country by ip', extra={'address': address})
+            return None
+
+        return country
+
+
+@service
+class ClientService:
+    def __init__(self, ip_locator: IpLocator):
+        self.ip_locator = ip_locator
+
+    def client_info(self, user_agent, ip_address) -> Client:
+        user_agent = user_agents.parse(user_agent)
+        return Client(
+            browser_family=user_agent.browser.family,
+            device_family=user_agent.device.family,
+            os_family=user_agent.os.family,
+            country=self.ip_locator.get_country(ip_address),
+            is_bot=user_agent.is_bot,
+            is_mobile=user_agent.is_mobile,
+        )
 
 
 @service
@@ -69,8 +117,13 @@ class CampaignService:
 
 @service
 class FlowService:
-    def __init__(self, landing_pages_base_path: Annotated[str, Inject(param='LANDING_PAGES_BASE_PATH')]):
+    def __init__(
+        self,
+        landing_pages_base_path: Annotated[str, Inject(param='LANDING_PAGES_BASE_PATH')],
+        landing_renderer_base_url: Annotated[str, Inject(param='LANDING_PAGE_RENDERER_BASE_URL')],
+    ):
         self.landing_pages_base_path = landing_pages_base_path
+        self.landing_renderer_base_url = landing_renderer_base_url
 
     def _store_landing_archive(self, flow_id, landing_archive):
         if not self.landing_pages_base_path:
@@ -94,6 +147,10 @@ class FlowService:
 
         return flow_dir
 
+    def _render_landing_page(self, flow_id):
+        response = httpx.get(f'{self.landing_renderer_base_url}/{flow_id}')
+        return response.text
+
     def get(self, id):
         return Flow.get_by_id(id)
 
@@ -110,6 +167,7 @@ class FlowService:
     def create(
         self,
         campaign_id,
+        rule,
         order_value,
         action_type,
         redirect_url=None,
@@ -118,6 +176,7 @@ class FlowService:
     ):
         flow = Flow(
             campaign_id=campaign_id,
+            rule=rule,
             order_value=order_value,
             action_type=action_type,
             redirect_url=redirect_url,
@@ -126,15 +185,14 @@ class FlowService:
         flow.save()
 
         if action_type == FlowActionType.include:
-            landing_path = self._store_landing_archive(flow, landing_archive)
-            flow.landing_path = landing_path
-            flow.save()
+            self._store_landing_archive(flow.id, landing_archive)
 
         return flow
 
     def update(
         self,
         flow_id,
+        rule=None,
         order_value=None,
         action_type=None,
         redirect_url=None,
@@ -142,6 +200,9 @@ class FlowService:
         landing_archive=None,
     ):
         flow = Flow.get_by_id(flow_id)
+        if rule is not None:
+            flow.rule = rule
+
         if order_value is not None:
             flow.order_value = order_value
 
@@ -150,10 +211,7 @@ class FlowService:
             flow.redirect_url = redirect_url
 
             if action_type == FlowActionType.include:
-                landing_path = self._store_landing_archive(flow, landing_archive)
-                flow.landing_path = landing_path
-            elif action_type == FlowActionType.redirect:
-                flow.landing_path = None
+                self._store_landing_archive(flow.id, landing_archive)
 
         if is_enabled is not None:
             flow.is_enabled = is_enabled
@@ -163,3 +221,26 @@ class FlowService:
 
     def count(self):
         return Flow.select(fn.count(Flow.id)).where(Flow.is_deleted == False).scalar()
+
+    def process_flows(self, campaign_id: int, client: Client):
+        flows = Flow.select().where(Flow.campaign_id == campaign_id).order_by(Flow.order_value.desc())
+
+        matched_flow = None
+        for flow in flows:
+            rule = rule_engine.Rule(flow.rule)
+            if rule.matches(dataclasses.asdict(client)):
+                matched_flow = flow
+                break
+
+        if matched_flow is None:
+            logger.warning(
+                'Failed to process flows', extra={'campaign_id': campaign_id, 'flows': [f.to_dict() for f in flows]}
+            )
+            return None, None
+
+        if matched_flow.action_type == FlowActionType.redirect:
+            return matched_flow.action_type, matched_flow.redirect_url
+        elif matched_flow.action_type == FlowActionType.include:
+            return matched_flow.action_type, self._render_landing_page(matched_flow.id)
+
+        return None, None

@@ -71,6 +71,7 @@ class FilterCampaignResponseSchema(Schema):
 
 class FlowUpdateRequestSchema(Schema):
     orderValue = fields.Integer()
+    rule = fields.String(required=True)
     actionType = fields.Enum(FlowActionType, required=True)
     redirectUrl = fields.Url(allow_none=True, load_default=None)
     isEnabled = fields.Boolean()

@@ -3,8 +3,6 @@ import pathlib
 import zipfile
 from unittest import mock
 
-import pytest
-
 
 def _zip_bytes():
     archive = io.BytesIO()
@@ -14,25 +12,10 @@ def _zip_bytes():
     return archive
 
 
-@pytest.fixture
-def flow(write_to_db, campaign):
-    return write_to_db(
-        'flow',
-        {
-            'campaign_id': campaign['id'],
-            'order_value': 1,
-            'action_type': 'redirect',
-            'redirect_url': 'https://example.com',
-            'landing_path': None,
-            'is_enabled': True,
-            'is_deleted': False,
-        },
-    )
-
-
-def test_create_flow__redirect_action_success(client, authorization, campaign, read_from_db):
+def test_create_flow__redirect_action_success(client, authorization, campaign, flow_rule, read_from_db):
     request_payload = {
         'campaignId': campaign['id'],
+        'rule': flow_rule,
         'orderValue': 1,
         'actionType': 'redirect',
         'redirectUrl': 'https://example.com',
@@ -52,24 +35,25 @@ def test_create_flow__redirect_action_success(client, authorization, campaign, r
     assert flow == {
         'id': mock.ANY,
         'created_at': mock.ANY,
+        'rule': request_payload['rule'],
         'campaign_id': request_payload['campaignId'],
         'order_value': request_payload['orderValue'],
         'action_type': request_payload['actionType'],
         'redirect_url': request_payload['redirectUrl'],
-        'landing_path': None,
         'is_enabled': request_payload['isEnabled'],
         'is_deleted': False,
     }
 
 
 def test_create_flow__include_action_success(
-    client, authorization, campaign, environment, read_from_db, landing_pages_base_path
+    client, authorization, campaign, environment, flow_rule, landing_pages_base_path, read_from_db
 ):
     request_payload = {
         'campaignId': campaign['id'],
         'orderValue': 2,
         'actionType': 'include',
         'landingArchive': (_zip_bytes(), 'landing.zip'),
+        'rule': flow_rule,
     }
 
     response = client.post(
@@ -86,26 +70,22 @@ def test_create_flow__include_action_success(
     assert flow == {
         'id': mock.ANY,
         'created_at': mock.ANY,
+        'rule': request_payload['rule'],
         'campaign_id': request_payload['campaignId'],
         'order_value': request_payload['orderValue'],
         'action_type': request_payload['actionType'],
         'redirect_url': None,
-        'landing_path': expected_landing_path,
         'is_enabled': 1,
         'is_deleted': 0,
     }
-    assert (pathlib.Path(flow['landing_path']) / 'index.html').exists()
+    assert (pathlib.Path(expected_landing_path) / 'index.html').exists()
 
 
-def test_create_flow__requires_redirect_url_for_redirect_action(client, authorization, campaign):
+def test_create_flow__requires_redirect_url_for_redirect_action(client, authorization, campaign, flow_rule):
     response = client.post(
         '/api/v2/core/flows',
         headers={'Authorization': authorization},
-        data={
-            'campaignId': campaign['id'],
-            'orderValue': 1,
-            'actionType': 'redirect',
-        },
+        data={'campaignId': campaign['id'], 'orderValue': 1, 'actionType': 'redirect', 'rule': flow_rule},
         content_type='multipart/form-data',
     )
 
@@ -117,12 +97,13 @@ def test_create_flow__requires_redirect_url_for_redirect_action(client, authoriz
     }
 
 
-def test_create_flow__requires_landing_archive_for_include_action(client, authorization, campaign):
+def test_create_flow__requires_landing_archive_for_include_action(client, authorization, campaign, flow_rule):
     response = client.post(
         '/api/v2/core/flows',
         headers={'Authorization': authorization},
         data={
             'campaignId': campaign['id'],
+            'rule': flow_rule,
             'orderValue': 1,
             'actionType': 'include',
             'redirectUrl': 'https://example.com',
@@ -138,12 +119,13 @@ def test_create_flow__requires_landing_archive_for_include_action(client, author
     }
 
 
-def test_create_flow__rejects_non_zip_landing_archive(client, authorization, campaign):
+def test_create_flow__rejects_non_zip_landing_archive(client, authorization, campaign, flow_rule):
     response = client.post(
         '/api/v2/core/flows',
         headers={'Authorization': authorization},
         data={
             'campaignId': campaign['id'],
+            'rule': flow_rule,
             'orderValue': 1,
             'actionType': 'include',
             'landingArchive': (io.BytesIO(b'not-a-zip'), 'landing.txt'),
@@ -162,6 +144,7 @@ def test_create_flow__rejects_non_zip_landing_archive(client, authorization, cam
 def test_update_flow__redirect_action_success(client, authorization, flow, read_from_db):
     request_payload = {
         'orderValue': 3,
+        'rule': 'country == "RO"',
         'actionType': 'redirect',
         'redirectUrl': 'https://example.org',
         'isEnabled': False,
@@ -181,19 +164,20 @@ def test_update_flow__redirect_action_success(client, authorization, flow, read_
         'id': flow['id'],
         'created_at': mock.ANY,
         'campaign_id': flow['campaign_id'],
+        'rule': request_payload['rule'],
         'order_value': request_payload['orderValue'],
         'action_type': request_payload['actionType'],
         'redirect_url': request_payload['redirectUrl'],
-        'landing_path': None,
         'is_enabled': request_payload['isEnabled'],
         'is_deleted': False,
     }
 
 
 def test_update_flow__include_action_success(
-    client, authorization, flow, environment, read_from_db, landing_pages_base_path
+    client, authorization, flow, environment, read_from_db, flow_rule, landing_pages_base_path
 ):
     request_payload = {
+        'rule': flow_rule,
         'orderValue': 4,
         'actionType': 'include',
         'isEnabled': True,
@@ -215,14 +199,14 @@ def test_update_flow__include_action_success(
         'id': flow['id'],
         'created_at': mock.ANY,
         'campaign_id': flow['campaign_id'],
+        'rule': request_payload['rule'],
         'order_value': request_payload['orderValue'],
         'action_type': request_payload['actionType'],
         'redirect_url': None,
-        'landing_path': expected_landing_path,
         'is_enabled': request_payload['isEnabled'],
         'is_deleted': False,
     }
-    assert (pathlib.Path(updated['landing_path']) / 'index.html').exists()
+    assert (pathlib.Path(expected_landing_path) / 'index.html').exists()
 
 
 def test_update_flow__requires_redirect_url_for_redirect_action(client, authorization, flow):
@@ -231,6 +215,7 @@ def test_update_flow__requires_redirect_url_for_redirect_action(client, authoriz
         headers={'Authorization': authorization},
         data={
             'actionType': 'redirect',
+            'rule': flow['rule'],
         },
         content_type='multipart/form-data',
     )
@@ -249,6 +234,7 @@ def test_update_flow__requires_landing_archive_for_include_action(client, author
         headers={'Authorization': authorization},
         data={
             'actionType': 'include',
+            'rule': flow['rule']
         },
         content_type='multipart/form-data',
     )
@@ -266,6 +252,7 @@ def test_update_flow__rejects_non_zip_landing_archive(client, authorization, flo
         f'/api/v2/core/flows/{flow["id"]}',
         headers={'Authorization': authorization},
         data={
+            'rule': flow['rule'],
             'actionType': 'include',
             'landingArchive': (io.BytesIO(b'not-a-zip'), 'landing.txt'),
         },

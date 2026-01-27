@@ -129,6 +129,7 @@ class Flows(MethodView):
         flow_service = container.get(FlowService)
         flow_service.create(
             flow_payload['campaignId'],
+            flow_payload['rule'],
             flow_payload['orderValue'],
             flow_payload['actionType'],
             flow_payload.get('redirectUrl'),
@@ -164,6 +165,7 @@ class Flow(MethodView):
         flow_service = container.get(FlowService)
         flow_service.update(
             flow_id,
+            flow_payload.get('rule'),
             flow_payload.get('orderValue'),
             flow_payload.get('actionType'),
             flow_payload.get('redirectUrl'),

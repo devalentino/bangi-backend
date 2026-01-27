@@ -54,7 +54,7 @@ class TrackService:
         )
         return None
 
-    def track_click(self, click_id: str, campaign_id: str, parameters: dict) -> None:
+    def track_click(self, click_id: str, campaign_id: int, parameters: dict) -> None:
         click = TrackClick(click_id=click_id, campaign_id=campaign_id, parameters=parameters)
         click.save()
 

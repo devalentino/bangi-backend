@@ -42,8 +42,8 @@ def migrate(migrator: Migrator, database: pw.Database, *, fake=False):
     migrator.add_fields(
         'flow',
         action_type=pw.CharField(default='redirect', max_length=255),
+        rule=pw.TextField(null=True),
         redirect_url=pw.CharField(max_length=255, null=True),
-        landing_path=pw.CharField(max_length=255, null=True),
     )
 
     migrator.add_fields(
@@ -64,6 +64,6 @@ def rollback(migrator: Migrator, database: pw.Database, *, fake=False):
     """Write your rollback migrations here."""
     migrator.remove_fields('track_postback', 'status', 'cost_value', 'currency')
 
-    migrator.remove_fields('flow', 'action_type', 'redirect_url', 'landing_path')
+    migrator.remove_fields('flow', 'action_type', 'rule', 'redirect_url')
 
     migrator.remove_fields('campaign', 'status_mapper')

@@ -32,9 +32,9 @@ class Campaigns(MethodView):
         campaign_service = container.get(CampaignService)
         campaigns = campaign_service.list(
             parameters_payload['page'],
-            parameters_payload['page_size'],
-            parameters_payload['sort_by'],
-            parameters_payload['sort_order'],
+            parameters_payload['pageSize'],
+            parameters_payload['sortBy'],
+            parameters_payload['sortOrder'],
         )
         count = campaign_service.count()
 
@@ -100,9 +100,9 @@ class Flows(MethodView):
         flow_service = container.get(FlowService)
         flows = flow_service.list(
             parameters_payload['page'],
-            parameters_payload['page_size'],
-            parameters_payload['sort_by'],
-            parameters_payload['sort_order'],
+            parameters_payload['pageSize'],
+            parameters_payload['sortBy'],
+            parameters_payload['sortOrder'],
         )
         count = flow_service.count()
 

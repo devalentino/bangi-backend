@@ -30,9 +30,9 @@ class ComaSeparatedStringsField(fields.Field):
 
 class PaginationRequestSchema(Schema):
     page = fields.Integer(dump_default=1, load_default=1)
-    page_size = fields.Integer(dump_default=PAGINATION_DEFAULT_PAGE_SIZE, load_default=PAGINATION_DEFAULT_PAGE_SIZE)
-    sort_by = fields.Enum(SortBy, dump_default=SortBy.id, load_default=SortBy.id)
-    sort_order = fields.Enum(SortOrder, dump_default=SortOrder.asc, load_default=SortOrder.asc)
+    pageSize = fields.Integer(dump_default=PAGINATION_DEFAULT_PAGE_SIZE, load_default=PAGINATION_DEFAULT_PAGE_SIZE)
+    sortBy = fields.Enum(SortBy, dump_default=SortBy.id, load_default=SortBy.id)
+    sortOrder = fields.Enum(SortOrder, dump_default=SortOrder.asc, load_default=SortOrder.asc)
 
 
 class PaginationResponseSchema(PaginationRequestSchema):

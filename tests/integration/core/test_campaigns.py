@@ -51,7 +51,7 @@ def test_campaigns_list(client, authorization, campaign_payload, write_to_db):
     ]
     assert response.json == {
         'content': expected_content,
-        'pagination': {'page': 1, 'page_size': 20, 'sort_by': 'id', 'sort_order': 'asc', 'total': 25},
+        'pagination': {'page': 1, 'pageSize': 20, 'sortBy': 'id', 'sortOrder': 'asc', 'total': 25},
     }
 
 

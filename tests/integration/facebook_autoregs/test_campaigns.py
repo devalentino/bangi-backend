@@ -19,7 +19,7 @@ def test_get_campaigns(client, authorization, campaign_fa):
                 'executor': {'id': campaign_fa['executor_id'], 'isBanned': mock.ANY, 'name': mock.ANY},
             }
         ],
-        'pagination': {'page': 1, 'page_size': 20, 'sort_by': 'id', 'sort_order': 'asc', 'total': 1},
+        'pagination': {'page': 1, 'pageSize': 20, 'sortBy': 'id', 'sortOrder': 'asc', 'total': 1},
     }
 
 

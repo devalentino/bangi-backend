@@ -130,10 +130,10 @@ class FlowService:
             logger.error('Landing archives base path is not configured')
             raise LandingPageUploadError()
 
-        flow_dir = os.path.join(self.landing_pages_base_path, str(flow_id))
-        if os.path.exists(flow_dir):
-            shutil.rmtree(flow_dir)
-        os.makedirs(flow_dir, exist_ok=True)
+        landing_dir = os.path.join(self.landing_pages_base_path, str(flow_id))
+        if os.path.exists(landing_dir):
+            shutil.rmtree(landing_dir)
+        os.makedirs(landing_dir, exist_ok=True)
 
         with tempfile.NamedTemporaryFile(delete=False, suffix='.zip') as temp_file:
             landing_archive.save(temp_file.name)
@@ -141,11 +141,11 @@ class FlowService:
 
         try:
             with zipfile.ZipFile(temp_path) as archive:
-                archive.extractall(flow_dir)
+                archive.extractall(landing_dir)
         finally:
             os.remove(temp_path)
 
-        return flow_dir
+        return landing_dir
 
     def _render_landing_page(self, flow_id):
         response = httpx.get(f'{self.landing_renderer_base_url}/{flow_id}')

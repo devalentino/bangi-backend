@@ -19,7 +19,8 @@ mysql = factories.mysql('mysql_in_docker', passwd=os.getenv('MARIADB_PASSWORD'))
 
 
 @pytest.fixture(autouse=True, scope='session')
-def landing_pages_base_path(tmpdir_factory):
+def landing_pages_base_path(environment, tmpdir_factory):
+    assert environment['LANDING_PAGES_BASE_PATH'] is not None, 'LANDING_PAGES_BASE_PATH is not set'
     return str(tmpdir_factory.mktemp('landings'))
 
 

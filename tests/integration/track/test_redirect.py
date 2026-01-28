@@ -7,7 +7,9 @@ import pytest
 
 
 @pytest.fixture
-def ip2location_mock():
+def ip2location_mock(environment):
+    assert environment['IP2LOCATION_DB_PATH'] is not None, 'IP2LOCATION_DB_PATH is not set'
+
     from src.container import container
     from src.core.services import IpLocator
 
@@ -81,6 +83,7 @@ class TestTrackLanding:
 
     @pytest.fixture
     def landing_render_mock(self, flow, environment, landing_page_content, respx_mock):
+        assert environment["LANDING_PAGE_RENDERER_BASE_URL"] is not None, 'LANDING_PAGE_RENDERER_BASE_URL is not set'
         return respx_mock.get(f'{environment["LANDING_PAGE_RENDERER_BASE_URL"]}/{flow["id"]}').mock(
             httpx.Response(status_code=200, text=landing_page_content)
         )

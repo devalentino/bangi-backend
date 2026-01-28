@@ -37,7 +37,7 @@ class TestTrackRedirect:
             'from': 'terraleads.com',
         }
 
-        response = client.get(f'/api/v2/track/redirect/{campaign["id"]}', query_string=request_payload)
+        response = client.get(f'/api/v2/track/process/{campaign["id"]}', query_string=request_payload)
         assert response.status_code == 302, response.text
         assert response.headers['Location'] == flow['redirect_url']  # user gets redirected
 
@@ -103,7 +103,7 @@ class TestTrackLanding:
             'from': 'terraleads.com',
         }
 
-        response = client.get(f'/api/v2/track/redirect/{campaign["id"]}', query_string=request_payload)
+        response = client.get(f'/api/v2/track/process/{campaign["id"]}', query_string=request_payload)
         assert response.status_code == 200, response.text
         assert response.headers['Content-Type'] == 'text/html; charset=utf-8'
 

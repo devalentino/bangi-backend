@@ -38,19 +38,18 @@ def test_campaigns_list(client, authorization, campaign_payload, write_to_db):
 
     response = client.get('/api/v2/core/campaigns', headers={'Authorization': authorization})
     assert response.status_code == 200, response.text
-    expected_content = [
-        {
-            'costModel': 'cpm',
-            'costValue': '1.00',
-            'currency': 'usd',
-            'id': index + 1,
-            'name': f'Campaign {index}',
-            'statusMapper': None,
-        }
-        for index in range(20)
-    ]
     assert response.json == {
-        'content': expected_content,
+        'content': [
+            {
+                'costModel': 'cpm',
+                'costValue': '1.00',
+                'currency': 'usd',
+                'id': index + 1,
+                'name': f'Campaign {index}',
+                'statusMapper': None,
+            }
+            for index in range(20)
+        ],
         'pagination': {'page': 1, 'pageSize': 20, 'sortBy': 'id', 'sortOrder': 'asc', 'total': 25},
     }
 

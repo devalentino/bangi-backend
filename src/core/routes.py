@@ -118,7 +118,7 @@ class Flows(MethodView):
         landing_archive = request.files.get('landingArchive')
 
         try:
-            FlowCreateRequestSchema.validate_include_action_type(flow_payload, landing_archive)
+            FlowCreateRequestSchema.validate_render_action_type(flow_payload, landing_archive)
         except ValidationError as e:
             return {
                 'code': 422,
@@ -154,7 +154,7 @@ class Flow(MethodView):
         landing_archive = request.files.get('landingArchive')
 
         try:
-            FlowUpdateRequestSchema.validate_include_action_type(flow_payload, landing_archive)
+            FlowUpdateRequestSchema.validate_render_action_type(flow_payload, landing_archive)
         except ValidationError as e:
             return {
                 'code': 422,

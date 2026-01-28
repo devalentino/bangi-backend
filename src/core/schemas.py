@@ -104,10 +104,10 @@ class FlowUpdateRequestSchema(Schema):
             raise ValidationError('rule error', field_name='rule')
 
     @classmethod
-    def validate_include_action_type(cls, flow_payload, landing_archive):
-        if flow_payload.get('actionType') == FlowActionType.include:
+    def validate_render_action_type(cls, flow_payload, landing_archive):
+        if flow_payload.get('actionType') == FlowActionType.render:
             if landing_archive is None:
-                raise ValidationError('landingArchive is required for include action.', field_name='landingArchive')
+                raise ValidationError('landingArchive is required for render action.', field_name='landingArchive')
             if not landing_archive.filename.endswith('.zip'):
                 raise ValidationError('landingArchive must be a .zip file.', field_name='landingArchive')
             return

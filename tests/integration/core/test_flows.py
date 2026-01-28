@@ -45,13 +45,13 @@ def test_create_flow__redirect_action_success(client, authorization, campaign, f
     }
 
 
-def test_create_flow__include_action_success(
+def test_create_flow__render_action_success(
     client, authorization, campaign, environment, flow_rule, landing_pages_base_path, read_from_db
 ):
     request_payload = {
         'campaignId': campaign['id'],
         'orderValue': 2,
-        'actionType': 'include',
+        'actionType': 'render',
         'landingArchive': (_zip_bytes(), 'landing.zip'),
         'rule': flow_rule,
     }
@@ -97,7 +97,7 @@ def test_create_flow__requires_redirect_url_for_redirect_action(client, authoriz
     }
 
 
-def test_create_flow__requires_landing_archive_for_include_action(client, authorization, campaign, flow_rule):
+def test_create_flow__requires_landing_archive_for_render_action(client, authorization, campaign, flow_rule):
     response = client.post(
         '/api/v2/core/flows',
         headers={'Authorization': authorization},
@@ -105,7 +105,7 @@ def test_create_flow__requires_landing_archive_for_include_action(client, author
             'campaignId': campaign['id'],
             'rule': flow_rule,
             'orderValue': 1,
-            'actionType': 'include',
+            'actionType': 'render',
             'redirectUrl': 'https://example.com',
         },
         content_type='multipart/form-data',
@@ -114,7 +114,7 @@ def test_create_flow__requires_landing_archive_for_include_action(client, author
     assert response.status_code == 422, response.text
     assert response.json == {
         'code': 422,
-        'errors': {'form': {'landingArchive': ['landingArchive is required for include action.']}},
+        'errors': {'form': {'landingArchive': ['landingArchive is required for render action.']}},
         'status': 'Unprocessable Entity',
     }
 
@@ -127,7 +127,7 @@ def test_create_flow__rejects_non_zip_landing_archive(client, authorization, cam
             'campaignId': campaign['id'],
             'rule': flow_rule,
             'orderValue': 1,
-            'actionType': 'include',
+            'actionType': 'render',
             'landingArchive': (io.BytesIO(b'not-a-zip'), 'landing.txt'),
         },
         content_type='multipart/form-data',
@@ -198,13 +198,13 @@ def test_update_flow__redirect_action_success(client, authorization, flow, read_
     }
 
 
-def test_update_flow__include_action_success(
+def test_update_flow__render_action_success(
     client, authorization, flow, environment, read_from_db, flow_rule, landing_pages_base_path
 ):
     request_payload = {
         'rule': flow_rule,
         'orderValue': 4,
-        'actionType': 'include',
+        'actionType': 'render',
         'isEnabled': True,
         'landingArchive': (_zip_bytes(), 'landing.zip'),
     }
@@ -253,18 +253,18 @@ def test_update_flow__requires_redirect_url_for_redirect_action(client, authoriz
     }
 
 
-def test_update_flow__requires_landing_archive_for_include_action(client, authorization, flow):
+def test_update_flow__requires_landing_archive_for_render_action(client, authorization, flow):
     response = client.patch(
         f'/api/v2/core/flows/{flow["id"]}',
         headers={'Authorization': authorization},
-        data={'actionType': 'include', 'rule': flow['rule']},
+        data={'actionType': 'render', 'rule': flow['rule']},
         content_type='multipart/form-data',
     )
 
     assert response.status_code == 422, response.text
     assert response.json == {
         'code': 422,
-        'errors': {'form': {'landingArchive': ['landingArchive is required for include action.']}},
+        'errors': {'form': {'landingArchive': ['landingArchive is required for render action.']}},
         'status': 'Unprocessable Entity',
     }
 
@@ -275,7 +275,7 @@ def test_update_flow__rejects_non_zip_landing_archive(client, authorization, flo
         headers={'Authorization': authorization},
         data={
             'rule': flow['rule'],
-            'actionType': 'include',
+            'actionType': 'render',
             'landingArchive': (io.BytesIO(b'not-a-zip'), 'landing.txt'),
         },
         content_type='multipart/form-data',

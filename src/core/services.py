@@ -188,7 +188,7 @@ class FlowService:
         )
         flow.save()
 
-        if action_type == FlowActionType.include:
+        if action_type == FlowActionType.render:
             self._store_landing_archive(flow.id, landing_archive)
 
         return flow
@@ -214,7 +214,7 @@ class FlowService:
             flow.action_type = action_type
             flow.redirect_url = redirect_url
 
-            if action_type == FlowActionType.include:
+            if action_type == FlowActionType.render:
                 self._store_landing_archive(flow.id, landing_archive)
 
         if is_enabled is not None:
@@ -244,7 +244,7 @@ class FlowService:
 
         if matched_flow.action_type == FlowActionType.redirect:
             return matched_flow.action_type, matched_flow.redirect_url
-        elif matched_flow.action_type == FlowActionType.include:
+        elif matched_flow.action_type == FlowActionType.render:
             return matched_flow.action_type, self._render_landing_page(matched_flow.id)
 
         return None, None

@@ -27,4 +27,4 @@ class CostModel(str, Enum):
 
 class FlowActionType(str, Enum):
     redirect = 'redirect'
-    include = 'include'
+    render = 'render'

@@ -62,7 +62,7 @@ class TrackRedirect(MethodView):
 
         if action_type == FlowActionType.redirect:
             return redirect(subject)
-        elif action_type == FlowActionType.include:
+        elif action_type == FlowActionType.render:
             return make_response(subject)
         else:
             return make_response('')

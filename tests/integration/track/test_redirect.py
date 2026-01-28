@@ -75,7 +75,7 @@ class TestTrackLanding:
         return {
             'order_value': 1,
             'rule': flow_rule,
-            'action_type': 'include',
+            'action_type': 'render',
             'redirect_url': None,
             'is_enabled': True,
             'is_deleted': False,

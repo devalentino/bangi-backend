@@ -30,7 +30,11 @@ class IpLocator(Protocol):
 @injectable(as_type=IpLocator)
 class Ip2LocationLocator:
     def __init__(self, ip2location_db_path: Annotated[str, Inject(param='IP2LOCATION_DB_PATH')]):
-        self.ip2location = IP2Location.IP2Location(ip2location_db_path)
+        self.ip2location = None
+        try:
+            self.ip2location = IP2Location.IP2Location(ip2location_db_path)
+        except ValueError:
+            logger.warning('IP2Location database is not valid')
 
     def get_country(self, address):
         try:

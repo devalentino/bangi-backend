@@ -40,8 +40,8 @@ class TrackPostback(MethodView):
         track_click_service.track_postback(track_payload.pop('click_id'), parameters=track_payload)
 
 
-@blueprint.route('/redirect/<int:campaign_id>')
-class TrackRedirect(MethodView):
+@blueprint.route('/process/<int:campaign_id>')
+class Process(MethodView):
     @blueprint.arguments(TrackRedirectRequestSchema, location='query')
     @blueprint.response(200)
     def get(self, redirect_payload, campaign_id):

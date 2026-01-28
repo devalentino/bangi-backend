@@ -227,7 +227,7 @@ class FlowService:
 
         matched_flow = None
         for flow in flows:
-            rule = rule_engine.Rule(flow.rule)
+            rule = rule_engine.Rule(flow.rule, context=Client.rule_engine_context())
             if rule.matches(dataclasses.asdict(client)):
                 matched_flow = flow
                 break

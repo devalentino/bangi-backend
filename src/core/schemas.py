@@ -1,10 +1,15 @@
 import decimal
+import logging
 
+import rule_engine
 from marshmallow import Schema as MarshmallowSchema
 from marshmallow import ValidationError, fields, validates_schema
 
 from src.core.constants import PAGINATION_DEFAULT_PAGE_SIZE
 from src.core.enums import CostModel, Currency, FlowActionType, SortBy, SortOrder
+from src.core.models import Client
+
+logger = logging.getLogger(__name__)
 
 
 class Schema(MarshmallowSchema):
@@ -82,6 +87,21 @@ class FlowUpdateRequestSchema(Schema):
             if data.get('redirectUrl') is None:
                 raise ValidationError('redirectUrl is required for redirect action.', field_name='redirectUrl')
             return
+
+    @validates_schema
+    def validate_rule(self, data, **kwargs):
+        rule = data.get('rule')
+        if rule is None:
+            return
+        try:
+            rule_engine.Rule(rule, context=Client.rule_engine_context())
+        except rule_engine.errors.SymbolResolutionError as e:
+            raise ValidationError(e.message, field_name='rule')
+        except rule_engine.errors.RuleSyntaxError as e:
+            raise ValidationError(e.message, field_name='rule')
+        except rule_engine.errors.EngineError:
+            logger.warning('Failed to save rule', exc_info=True)
+            raise ValidationError('rule error', field_name='rule')
 
     @classmethod
     def validate_include_action_type(cls, flow_payload, landing_archive):

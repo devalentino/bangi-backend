@@ -141,6 +141,31 @@ def test_create_flow__rejects_non_zip_landing_archive(client, authorization, cam
     }
 
 
+def test_create_flow__rejects_rule_with_unsupported_term(client, authorization, campaign):
+    request_payload = {
+        'campaignId': campaign['id'],
+        'rule': 'countri == "US"',
+        'orderValue': 1,
+        'actionType': 'redirect',
+        'redirectUrl': 'https://example.com',
+        'isEnabled': True,
+    }
+
+    response = client.post(
+        '/api/v2/core/flows',
+        headers={'Authorization': authorization},
+        data=request_payload,
+        content_type='multipart/form-data',
+    )
+
+    assert response.status_code == 422, response.text
+    assert response.json == {
+        'code': 422,
+        'errors': {'form': {'rule': ["unknown symbol: 'countri'"]}},
+        'status': 'Unprocessable Entity',
+    }
+
+
 def test_update_flow__redirect_action_success(client, authorization, flow, read_from_db):
     request_payload = {
         'orderValue': 3,
@@ -232,10 +257,7 @@ def test_update_flow__requires_landing_archive_for_include_action(client, author
     response = client.patch(
         f'/api/v2/core/flows/{flow["id"]}',
         headers={'Authorization': authorization},
-        data={
-            'actionType': 'include',
-            'rule': flow['rule']
-        },
+        data={'actionType': 'include', 'rule': flow['rule']},
         content_type='multipart/form-data',
     )
 
@@ -263,5 +285,25 @@ def test_update_flow__rejects_non_zip_landing_archive(client, authorization, flo
     assert response.json == {
         'code': 422,
         'errors': {'form': {'landingArchive': ['landingArchive must be a .zip file.']}},
+        'status': 'Unprocessable Entity',
+    }
+
+
+def test_update_flow__rejects_unsupported_rule_term(client, authorization, flow):
+    response = client.patch(
+        f'/api/v2/core/flows/{flow["id"]}',
+        headers={'Authorization': authorization},
+        data={
+            'rule': 'country ==',
+            'actionType': 'redirect',
+            'redirectUrl': 'https://example.org',
+        },
+        content_type='multipart/form-data',
+    )
+
+    assert response.status_code == 422, response.text
+    assert response.json == {
+        'code': 422,
+        'errors': {'form': {'rule': ['syntax error at: EOF']}},
         'status': 'Unprocessable Entity',
     }

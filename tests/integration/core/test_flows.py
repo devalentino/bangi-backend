@@ -3,6 +3,8 @@ import pathlib
 import zipfile
 from unittest import mock
 
+import pytest
+
 
 def _zip_bytes():
     archive = io.BytesIO()
@@ -202,6 +204,34 @@ def test_flows_list__ordered_by_order_value_desc(client, authorization, campaign
     }
 
 
+def test_flows_list__filter_out_deleted(client, authorization, campaign, flow_rule, write_to_db):
+    for index in range(25):
+        write_to_db(
+            'flow',
+            {
+                'name': f'Flow {index}',
+                'campaign_id': campaign['id'],
+                'rule': flow_rule,
+                'order_value': index + 1,
+                'action_type': 'redirect',
+                'redirect_url': f'https://example.com/{index}',
+                'is_enabled': True,
+                'is_deleted': True,
+            },
+        )
+
+    response = client.get(
+        f'/api/v2/core/campaigns/{campaign["id"]}/flows',
+        headers={'Authorization': authorization},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json == {
+        'content': [],
+        'pagination': {'page': 1, 'pageSize': 20, 'sortBy': 'id', 'sortOrder': 'asc', 'total': 0},
+    }
+
+
 def test_get_flow(client, authorization, campaign, flow):
     response = client.get(
         f'/api/v2/core/campaigns/{campaign["id"]}/flows/{flow["id"]}',
@@ -243,6 +273,16 @@ def test_get_flow__non_related_campaign(client, authorization, flow, campaign_pa
 
     assert response.status_code == 404, response.text
     assert response.json == {'message': 'Does not exist'}
+
+
+def test_delete_flow(client, authorization, flow, campaign, flow_rule, write_to_db, read_from_db):
+    response = client.delete(
+        f'/api/v2/core/campaigns/{campaign["id"]}/flows/{flow["id"]}',
+        headers={'Authorization': authorization},
+    )
+
+    assert response.status_code == 204, response.text
+    assert read_from_db('flow', filters={'id': flow['id']})['is_deleted'] == 1
 
 
 def test_create_flow__redirect_action_success(client, authorization, campaign, flow_rule, read_from_db):
@@ -627,3 +667,18 @@ def test_bulk_update_flow_order_values(
         == request_payload['order'][flow_three['id']]
     )
     assert read_from_db('flow', filters={'id': other_flow['id']})['order_value'] == other_flow['order_value']
+
+
+class TestGetDeletedFlow:
+    @pytest.fixture
+    def flow_is_deleted(self):
+        return True
+
+    def test_get_flow(self, client, authorization, campaign, flow):
+        response = client.get(
+            f'/api/v2/core/campaigns/{campaign["id"]}/flows/{flow["id"]}',
+            headers={'Authorization': authorization},
+        )
+
+        assert response.status_code == 404, response.text
+        assert response.json == {'message': 'Does not exist'}

@@ -203,6 +203,12 @@ class Flow(MethodView):
             landing_archive,
         )
 
+    @blueprint.response(204)
+    @auth.login_required
+    def delete(self, campaign_id, flow_id):
+        flow_service = container.get(FlowService)
+        flow_service.delete(flow_id, campaign_id)
+
 
 @blueprint.route('/campaigns/<int:campaign_id>/flows/order')
 class FlowOrder(MethodView):

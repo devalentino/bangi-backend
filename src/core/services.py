@@ -164,7 +164,7 @@ class FlowService:
         except Flow.DoesNotExist as exc:
             raise DoesNotExistError() from exc
 
-        if flow.campaign.id != campaign_id:
+        if flow.campaign.id != campaign_id or flow.is_deleted:
             raise DoesNotExistError()
 
         return flow
@@ -239,6 +239,11 @@ class FlowService:
 
         flow.save()
         return flow
+
+    def delete(self, flow_id, campaign_id):
+        flow = self.get(flow_id, campaign_id)
+        flow.is_deleted = True
+        flow.save()
 
     def bulk_update_order(self, campaign_id, order):
         # TODO: move to repo

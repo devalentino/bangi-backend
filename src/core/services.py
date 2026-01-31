@@ -176,7 +176,11 @@ class FlowService:
 
         return [
             f
-            for f in Flow.select().where((Flow.is_deleted == False) & (Flow.campaign == campaign_id)).order_by(order_by).limit(page_size).offset(page - 1)
+            for f in Flow.select()
+            .where((Flow.is_deleted == False) & (Flow.campaign == campaign_id))
+            .order_by(order_by)
+            .limit(page_size)
+            .offset(page - 1)
         ]
 
     def create(
@@ -247,7 +251,9 @@ class FlowService:
                 ).execute()
 
     def count(self, campaign_id):
-        return Flow.select(fn.count(Flow.id)).where((Flow.is_deleted == False) & (Flow.campaign == campaign_id)).scalar()
+        return (
+            Flow.select(fn.count(Flow.id)).where((Flow.is_deleted == False) & (Flow.campaign == campaign_id)).scalar()
+        )
 
     def process_flows(self, campaign_id: int, client: Client):
         flows = Flow.select().where(Flow.campaign_id == campaign_id).order_by(Flow.order_value.desc())

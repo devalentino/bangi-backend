@@ -54,6 +54,64 @@ def test_flows_list(client, authorization, campaign, flow_rule, write_to_db):
     }
 
 
+def test_flows_list__filters_by_campaign(client, authorization, campaign, campaign_payload, flow_rule, write_to_db):
+    for index in range(3):
+        write_to_db(
+            'flow',
+            {
+                'name': f'Flow {index}',
+                'campaign_id': campaign['id'],
+                'rule': flow_rule,
+                'order_value': index + 1,
+                'action_type': 'redirect',
+                'redirect_url': f'https://example.com/{index}',
+                'is_enabled': True,
+                'is_deleted': False,
+            },
+        )
+
+    other_campaign = write_to_db('campaign', campaign_payload | {'name': 'Other Campaign'})
+    for index in range(2):
+        write_to_db(
+            'flow',
+            {
+                'name': f'Other Flow {index}',
+                'campaign_id': other_campaign['id'],
+                'rule': flow_rule,
+                'order_value': index + 10,
+                'action_type': 'redirect',
+                'redirect_url': f'https://example.com/other/{index}',
+                'is_enabled': True,
+                'is_deleted': False,
+            },
+        )
+
+    response = client.get(
+        f'/api/v2/core/campaigns/{campaign["id"]}/flows',
+        headers={'Authorization': authorization},
+    )
+
+    assert response.status_code == 200, response.text
+    assert response.json == {
+        'content': [
+            {
+                'id': index + 1,
+                'name': f'Flow {index}',
+                'campaignId': campaign['id'],
+                'campaignName': campaign['name'],
+                'rule': flow_rule,
+                'orderValue': index + 1,
+                'actionType': 'redirect',
+                'redirectUrl': f'https://example.com/{index}',
+                'landingPath': None,
+                'isEnabled': True,
+            }
+            for index in range(3)
+        ],
+        'pagination': {'page': 1, 'pageSize': 20, 'sortBy': 'id', 'sortOrder': 'asc', 'total': 3},
+    }
+
+
 def test_flows_list__ordered_by_order_value_desc(client, authorization, campaign, flow_rule, write_to_db):
     first = write_to_db(
         'flow',

@@ -169,14 +169,14 @@ class FlowService:
 
         return flow
 
-    def list(self, page, page_size, sort_by, sort_order, **kwargs):
+    def list(self, page, page_size, sort_by, sort_order, campaign_id):
         order_by = getattr(Flow, sort_by)
         if sort_order == SortOrder.desc:
             order_by = order_by.desc()
 
         return [
             f
-            for f in Flow.select().where(Flow.is_deleted == False).order_by(order_by).limit(page_size).offset(page - 1)
+            for f in Flow.select().where((Flow.is_deleted == False) & (Flow.campaign == campaign_id)).order_by(order_by).limit(page_size).offset(page - 1)
         ]
 
     def create(
@@ -246,8 +246,8 @@ class FlowService:
                     (Flow.campaign_id == campaign_id) & (Flow.id == flow_id)
                 ).execute()
 
-    def count(self, **kwargs):
-        return Flow.select(fn.count(Flow.id)).where(Flow.is_deleted == False).scalar()
+    def count(self, campaign_id):
+        return Flow.select(fn.count(Flow.id)).where((Flow.is_deleted == False) & (Flow.campaign == campaign_id)).scalar()
 
     def process_flows(self, campaign_id: int, client: Client):
         flows = Flow.select().where(Flow.campaign_id == campaign_id).order_by(Flow.order_value.desc())

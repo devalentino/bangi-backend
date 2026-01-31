@@ -158,13 +158,18 @@ class FlowService:
         response = httpx.get(f'{self.landing_renderer_base_url}/{flow_id}')
         return response.text
 
-    def get(self, id):
+    def get(self, id, campaign_id):
         try:
-            return Flow.get_by_id(id)
+            flow = Flow.get_by_id(id)
         except Flow.DoesNotExist as exc:
             raise DoesNotExistError() from exc
 
-    def list(self, page, page_size, sort_by, sort_order):
+        if flow.campaign.id != campaign_id:
+            raise DoesNotExistError()
+
+        return flow
+
+    def list(self, page, page_size, sort_by, sort_order, **kwargs):
         order_by = getattr(Flow, sort_by)
         if sort_order == SortOrder.desc:
             order_by = order_by.desc()
@@ -203,6 +208,7 @@ class FlowService:
     def update(
         self,
         flow_id,
+        campaign_id,
         name=None,
         rule=None,
         action_type=None,
@@ -210,7 +216,7 @@ class FlowService:
         is_enabled=None,
         landing_archive=None,
     ):
-        flow = Flow.get_by_id(flow_id)
+        flow = self.get(flow_id, campaign_id)
         if name:
             flow.name = name
 
@@ -240,7 +246,7 @@ class FlowService:
                     (Flow.campaign_id == campaign_id) & (Flow.id == flow_id)
                 ).execute()
 
-    def count(self):
+    def count(self, **kwargs):
         return Flow.select(fn.count(Flow.id)).where(Flow.is_deleted == False).scalar()
 
     def process_flows(self, campaign_id: int, client: Client):

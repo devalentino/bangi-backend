@@ -155,7 +155,7 @@ class FlowService:
         return landing_dir
 
     def _render_landing_page(self, flow_id):
-        response = httpx.get(f'{self.landing_renderer_base_url}/{flow_id}')
+        response = httpx.get(f'{self.landing_renderer_base_url}/{flow_id}/')
         return response.text
 
     def get(self, id, campaign_id):

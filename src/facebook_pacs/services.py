@@ -32,7 +32,7 @@ class ExecutorService:
 
         query = Executor.select()
         if partial_name:
-            query = query.where(Executor.name.contains(partial_name))
+            query = query.where(fn.LOWER(Executor.name).contains(partial_name.lower()))
 
         return [e for e in query.order_by(order_by).limit(page_size).offset(page - 1)]
 
@@ -56,7 +56,7 @@ class ExecutorService:
     def count(self, partial_name=None):
         query = Executor.select(fn.count(Executor.id))
         if partial_name:
-            query = query.where(Executor.name.contains(partial_name))
+            query = query.where(fn.LOWER(Executor.name).contains(partial_name.lower()))
         return query.scalar()
 
 
@@ -78,7 +78,7 @@ class BusinessPortfolioService:
 
         query = BusinessPortfolio.select()
         if partial_name:
-            query = query.where(BusinessPortfolio.name.contains(partial_name))
+            query = query.where(fn.LOWER(BusinessPortfolio.name).contains(partial_name.lower()))
 
         return [bm for bm in query.order_by(order_by).limit(page_size).offset(page - 1)]
 
@@ -102,7 +102,7 @@ class BusinessPortfolioService:
     def count(self, partial_name=None):
         query = BusinessPortfolio.select(fn.count(BusinessPortfolio.id))
         if partial_name:
-            query = query.where(BusinessPortfolio.name.contains(partial_name))
+            query = query.where(fn.LOWER(BusinessPortfolio.name).contains(partial_name.lower()))
         return query.scalar()
 
     def bind_executor(self, business_portfolio_id, executor_id):

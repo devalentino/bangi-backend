@@ -3,13 +3,17 @@ from datetime import datetime, timedelta
 
 from wireup import service
 
+from src.core.services import CampaignService
 from src.core.utils import utcnow
+from src.reports.entities import Expense
+from src.reports.exceptions import ExpensesDistributionParameterError
 from src.reports.repositories import BaseReportRepository
 
 
 @service
 class ReportService:
-    def __init__(self, base_report_repository: BaseReportRepository):
+    def __init__(self, campaign_service: CampaignService, base_report_repository: BaseReportRepository):
+        self.campaign_service = campaign_service
         self.base_report_repository = base_report_repository
 
     def _build_base_report(self, report_rows, parameters):
@@ -49,3 +53,21 @@ class ReportService:
             available_parameters = list(json.loads(available_parameters_row).keys()) if available_parameters_row else []
 
         return report, available_parameters
+
+    def submit_expenses(self, campaign_id, expenses_distribution_parameter, date_distributions):
+        campaign = self.campaign_service.get(campaign_id)
+        if campaign.expenses_distribution_parameter is None:
+            campaign.expenses_distribution_parameter = expenses_distribution_parameter
+            campaign.save()
+
+        if campaign.expenses_distribution_parameter != expenses_distribution_parameter:
+            raise ExpensesDistributionParameterError()
+
+        for date_distribution in date_distributions:
+            Expense.insert(
+                campaign=campaign,
+                date=date_distribution['date'],
+                distribution=date_distribution['distribution'],
+            ).on_conflict(
+                update={Expense.distribution: date_distribution['distribution']},
+            ).execute()

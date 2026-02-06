@@ -20,3 +20,14 @@ class BaseReportContent(Schema):
 
 class BaseReportResponse(Schema):
     content = fields.Nested(BaseReportContent())
+
+
+class ExpensesReportDistribution(Schema):
+    date = fields.Date(required=True)
+    distribution = fields.Dict()
+
+
+class ExpensesReportRequest(Schema):
+    campaignId = fields.Integer(required=True)
+    distributionParameter = fields.String(required=True)
+    dates = fields.Nested(ExpensesReportDistribution(many=True), required=True)

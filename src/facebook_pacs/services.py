@@ -4,7 +4,7 @@ from wireup import service
 
 from peewee import IntegrityError, fn
 from src.core.enums import SortOrder
-from src.core.exceptions import DoesNotExistError
+from src.core.exceptions import CampaignDoesNotExistError, DoesNotExistError
 from src.core.services import CampaignService as CoreCampaignService
 from src.facebook_pacs import exceptions
 from src.facebook_pacs.entities import (
@@ -286,7 +286,7 @@ class CampaignService:
         try:
             return Campaign.get_by_id(id)
         except Campaign.DoesNotExist as exc:
-            raise DoesNotExistError() from exc
+            raise CampaignDoesNotExistError() from exc
 
     def list(self, page, page_size, sort_by, sort_order):
         order_by = getattr(Campaign, sort_by)

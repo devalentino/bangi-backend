@@ -80,7 +80,7 @@ def test_get_campaign__non_existent(client, authorization):
     response = client.get('/api/v2/core/campaigns/100500', headers={'Authorization': authorization})
 
     assert response.status_code == 404, response.text
-    assert response.json == {'message': 'Does not exist'}
+    assert response.json == {'message': 'Campaign does not exist'}
 
 
 @pytest.mark.parametrize(

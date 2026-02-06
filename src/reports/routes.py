@@ -3,7 +3,13 @@ from flask.views import MethodView
 from src.auth import auth
 from src.blueprint import Blueprint
 from src.container import container
-from src.reports.schemas import BaseReportRequest, BaseReportResponse, ExpensesReportRequest
+from src.reports.schemas import (
+    BaseReportRequest,
+    BaseReportResponse,
+    ExpensesReportCreateRequest,
+    ExpensesReportListResponse,
+    ExpensesReportRequestSchema,
+)
 from src.reports.services import ReportService
 
 blueprint = Blueprint('reports', __name__, description='Reports')
@@ -29,7 +35,26 @@ class StatisticsReport(MethodView):
 
 @blueprint.route('/expenses')
 class ExpensesReport(MethodView):
-    @blueprint.arguments(ExpensesReportRequest)
+    @blueprint.arguments(ExpensesReportRequestSchema, location='query')
+    @blueprint.response(200, ExpensesReportListResponse)
+    @auth.login_required
+    def get(self, params):
+        report_service = container.get(ReportService)
+        expenses, total = report_service.list_expenses(
+            page=params['page'],
+            page_size=params['pageSize'],
+            sort_by=params['sortBy'],
+            sort_order=params['sortOrder'],
+            campaign_id=params.get('campaignId'),
+            start=params.get('start'),
+            end=params.get('end'),
+        )
+        return {
+            'content': expenses,
+            'pagination': {'page': params['page'], 'pageSize': params['pageSize'], 'total': total},
+        }
+
+    @blueprint.arguments(ExpensesReportCreateRequest)
     @blueprint.response(200)
     @auth.login_required
     def post(self, expenses_payload):

@@ -1,6 +1,6 @@
 from marshmallow import INCLUDE, fields
 
-from src.core.schemas import ComaSeparatedStringsField, Schema
+from src.core.schemas import ComaSeparatedStringsField, PaginationRequestSchema, PaginationResponseSchema, Schema
 
 
 class BaseReportRequest(Schema):
@@ -27,7 +27,28 @@ class ExpensesReportDistribution(Schema):
     distribution = fields.Dict()
 
 
-class ExpensesReportRequest(Schema):
+class ExpensesReportCreateRequest(Schema):
     campaignId = fields.Integer(required=True)
     distributionParameter = fields.String(required=True)
     dates = fields.Nested(ExpensesReportDistribution(many=True), required=True)
+
+
+class ExpensesReportFilterSchema(Schema):
+    start = fields.Date(required=False)
+    end = fields.Date(required=False)
+    campaignId = fields.Integer(required=True)
+
+
+class ExpensesReportRequestSchema(PaginationRequestSchema, ExpensesReportFilterSchema):
+    pass
+
+
+class ExpensesReportResponseItem(Schema):
+    date = fields.Date(required=True)
+    distribution = fields.Dict(required=True)
+
+
+class ExpensesReportListResponse(Schema):
+    content = fields.Nested(ExpensesReportResponseItem(many=True), required=True)
+    pagination = fields.Nested(PaginationResponseSchema, required=True)
+    filters = fields.Nested(ExpensesReportFilterSchema, required=True)

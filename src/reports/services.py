@@ -3,6 +3,8 @@ from datetime import datetime, timedelta
 
 from wireup import service
 
+from src.core.entities import Campaign
+from src.core.enums import SortOrder
 from src.core.services import CampaignService
 from src.core.utils import utcnow
 from src.reports.entities import Expense
@@ -12,7 +14,11 @@ from src.reports.repositories import BaseReportRepository
 
 @service
 class ReportService:
-    def __init__(self, campaign_service: CampaignService, base_report_repository: BaseReportRepository):
+    def __init__(
+        self,
+        campaign_service: CampaignService,
+        base_report_repository: BaseReportRepository,
+    ):
         self.campaign_service = campaign_service
         self.base_report_repository = base_report_repository
 
@@ -71,3 +77,33 @@ class ReportService:
             ).on_conflict(
                 update={Expense.distribution: date_distribution['distribution']},
             ).execute()
+
+    def list_expenses(self, page, page_size, sort_by, sort_order, campaign_id, start=None, end=None):
+        order_by = getattr(Expense, sort_by)
+        if sort_order == SortOrder.desc:
+            order_by = order_by.desc()
+
+        query = Expense.select(Expense, Campaign).join(Campaign).where(Expense.campaign == campaign_id)
+
+        if start is not None:
+            query = query.where(Expense.date >= start)
+
+        if end is not None:
+            query = query.where(Expense.date <= end)
+
+        total = query.count()
+
+        expenses = query.order_by(order_by).limit(page_size).offset((page - 1) * page_size)
+
+        return (
+            [
+                {
+                    'id': expense.id,
+                    'campaignId': expense.campaign.id,
+                    'date': expense.date,
+                    'distribution': expense.distribution,
+                }
+                for expense in expenses
+            ],
+            total,
+        )

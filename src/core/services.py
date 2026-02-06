@@ -232,7 +232,7 @@ class FlowService:
             .where((Flow.is_deleted == False) & (Flow.campaign == campaign_id))
             .order_by(order_by)
             .limit(page_size)
-            .offset(page - 1)
+            .offset((page - 1) * page_size)
         ]
 
     def create(

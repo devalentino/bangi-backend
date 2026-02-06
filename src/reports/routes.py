@@ -1,3 +1,4 @@
+import humps
 from flask.views import MethodView
 
 from src.auth import auth
@@ -41,17 +42,22 @@ class ExpensesReport(MethodView):
     def get(self, params):
         report_service = container.get(ReportService)
         expenses, total = report_service.list_expenses(
-            page=params['page'],
-            page_size=params['pageSize'],
-            sort_by=params['sortBy'],
-            sort_order=params['sortOrder'],
-            campaign_id=params.get('campaignId'),
-            start=params.get('start'),
-            end=params.get('end'),
+            params['page'],
+            params['pageSize'],
+            humps.decamelize(params['sortBy'].value),
+            params['sortOrder'],
+            params.get('campaignId'),
+            params.get('start'),
+            params.get('end'),
         )
         return {
             'content': expenses,
-            'pagination': {'page': params['page'], 'pageSize': params['pageSize'], 'total': total},
+            'pagination': params | {'total': total},
+            'filters': {
+                'start': params.get('start'),
+                'end': params.get('end'),
+                'campaignId': params.get('campaignId'),
+            },
         }
 
     @blueprint.arguments(ExpensesReportCreateRequest)

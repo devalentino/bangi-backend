@@ -95,15 +95,4 @@ class ReportService:
 
         expenses = query.order_by(order_by).limit(page_size).offset((page - 1) * page_size)
 
-        return (
-            [
-                {
-                    'id': expense.id,
-                    'campaignId': expense.campaign.id,
-                    'date': expense.date,
-                    'distribution': expense.distribution,
-                }
-                for expense in expenses
-            ],
-            total,
-        )
+        return [e for e in expenses], total

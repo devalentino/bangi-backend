@@ -1,4 +1,5 @@
 import json
+from datetime import timedelta
 from unittest import mock
 
 import pytest
@@ -69,6 +70,60 @@ class TestExpensesReport:
 
         assert json.loads(expense['distribution']) != json.loads(existing_expense['distribution'])
         assert json.loads(expense['distribution']) == request_payload['dates'][0]['distribution']
+
+    def test_get_expenses_report(self, client, authorization, campaign, campaign_payload, today, write_to_db):
+        other_campaign = write_to_db('campaign', campaign_payload | {'name': 'Other Campaign'})
+
+        date_end = today
+        date_start = today - timedelta(days=1)
+        older_date = today - timedelta(days=2)
+
+        date_end_expenses = write_to_db(
+            'expense',
+            {'campaign_id': campaign['id'], 'date': date_end, 'distribution': {'ad1': 12.5}},
+        )
+        date_start_expenses = write_to_db(
+            'expense',
+            {'campaign_id': campaign['id'], 'date': date_start, 'distribution': {'ad1': 7.5}},
+        )
+        write_to_db(
+            'expense',
+            {'campaign_id': campaign['id'], 'date': older_date, 'distribution': {'ad1': 1.5}},
+        )
+        write_to_db(
+            'expense',
+            {'campaign_id': other_campaign['id'], 'date': date_end, 'distribution': {'ad1': 99.0}},
+        )
+
+        response = client.get(
+            '/api/v2/reports/expenses',
+            headers={'Authorization': authorization},
+            query_string={
+                'campaignId': campaign['id'],
+                'start': date_start.isoformat(),
+                'end': date_end.isoformat(),
+                'page': 1,
+                'pageSize': 10,
+                'sortBy': 'date',
+                'sortOrder': 'asc',
+            },
+        )
+
+        assert response.status_code == 200, response.text
+        assert response.json == {
+            'content': [
+                {
+                    'date': date_start_expenses['date'].isoformat(),
+                    'distribution': json.loads(date_start_expenses['distribution']),
+                },
+                {
+                    'date': date_end_expenses['date'].isoformat(),
+                    'distribution': json.loads(date_end_expenses['distribution']),
+                },
+            ],
+            'pagination': {'page': 1, 'pageSize': 10, 'sortBy': 'date', 'sortOrder': 'asc', 'total': 2},
+            'filters': {'campaignId': campaign['id'], 'start': date_start.isoformat(), 'end': date_end.isoformat()},
+        }
 
 
 class TestExpensesReportExpensesDistributionParameterNotSet:

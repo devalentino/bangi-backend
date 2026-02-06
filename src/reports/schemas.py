@@ -1,6 +1,7 @@
 from marshmallow import INCLUDE, fields
 
 from src.core.schemas import ComaSeparatedStringsField, PaginationRequestSchema, PaginationResponseSchema, Schema
+from src.reports.enums import ExpenseSortBy
 
 
 class BaseReportRequest(Schema):
@@ -40,7 +41,7 @@ class ExpensesReportFilterSchema(Schema):
 
 
 class ExpensesReportRequestSchema(PaginationRequestSchema, ExpensesReportFilterSchema):
-    pass
+    sortBy = fields.Enum(ExpenseSortBy, dump_default=ExpenseSortBy.date, load_default=ExpenseSortBy.id)
 
 
 class ExpensesReportResponseItem(Schema):

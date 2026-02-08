@@ -92,7 +92,5 @@ class FilterCampaignExpensesDistributionParameterValues(MethodView):
     @auth.login_required
     def get(self, params):
         helpers_service = container.get(ReportHelperService)
-        values = helpers_service.list_expenses_distribution_parameter_values(
-            params['campaignId'], params['parameter']
-        )
+        values = helpers_service.list_expenses_distribution_parameter_values(params['campaignId'], params['parameter'])
         return [{'value': v} for v in values]

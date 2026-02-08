@@ -7,6 +7,8 @@ from src.container import container
 from src.reports.schemas import (
     ExpensesDistributionParametersRequestSchema,
     ExpensesDistributionParametersResponseSchema,
+    ExpensesDistributionParameterValuesRequestSchema,
+    ExpensesDistributionParameterValuesResponseSchema,
     ExpensesReportCreateRequest,
     ExpensesReportListResponse,
     ExpensesReportRequestSchema,
@@ -81,3 +83,16 @@ class FilterCampaignExpensesDistributionParameters(MethodView):
         helpers_service = container.get(ReportHelperService)
         parameters = helpers_service.list_expenses_distribution_parameters(params['campaignId'])
         return [{'parameter': p} for p in parameters]
+
+
+@blueprint.route('/helpers/expenses-distribution-parameter-values')
+class FilterCampaignExpensesDistributionParameterValues(MethodView):
+    @blueprint.arguments(ExpensesDistributionParameterValuesRequestSchema, location='query')
+    @blueprint.response(200, ExpensesDistributionParameterValuesResponseSchema(many=True))
+    @auth.login_required
+    def get(self, params):
+        helpers_service = container.get(ReportHelperService)
+        values = helpers_service.list_expenses_distribution_parameter_values(
+            params['campaignId'], params['parameter']
+        )
+        return [{'value': v} for v in values]

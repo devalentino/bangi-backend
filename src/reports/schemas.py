@@ -61,3 +61,12 @@ class ExpensesDistributionParametersRequestSchema(Schema):
 
 class ExpensesDistributionParametersResponseSchema(Schema):
     parameter = fields.String(required=True)
+
+
+class ExpensesDistributionParameterValuesRequestSchema(Schema):
+    campaignId = fields.Integer(required=True)
+    parameter = fields.String(required=True)
+
+
+class ExpensesDistributionParameterValuesResponseSchema(Schema):
+    value = fields.String(required=True)

@@ -128,3 +128,14 @@ class ReportHelperService:
                 parameters.update(click.parameters.keys())
 
         return sorted(parameters)
+
+    def list_expenses_distribution_parameter_values(self, campaign_id, parameter):
+        values = set()
+        query = TrackClick.select(TrackClick.parameters).where(TrackClick.campaign_id == campaign_id)
+        for click in query:
+            if not click.parameters or parameter not in click.parameters:
+                continue
+            value = click.parameters.get(parameter)
+            values.add(value)
+
+        return sorted(values)

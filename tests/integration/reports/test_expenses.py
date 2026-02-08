@@ -129,10 +129,16 @@ class TestExpensesReport:
             },
         }
 
-    def test_get_expenses_report__no_expenses__clicks_exist(self, client, authorization, campaign, today, read_from_db, write_to_db):
+    def test_get_expenses_report__no_expenses__clicks_exist(
+        self, client, authorization, campaign, today, read_from_db, write_to_db
+    ):
         write_to_db(
             'track_click',
-            {'click_id': 'click-1', 'campaign_id': campaign['id'], 'parameters': {'utm_source': 'fb', 'ad_name': 'ad1'}},
+            {
+                'click_id': 'click-1',
+                'campaign_id': campaign['id'],
+                'parameters': {'utm_source': 'fb', 'ad_name': 'ad1'},
+            },
         )
 
         response = client.get(
@@ -164,7 +170,6 @@ class TestExpensesReport:
 
         expenses = read_from_db('expense')
         assert expenses is None
-
 
     def test_get_expenses_report__no_expenses__no_clicks(self, client, authorization, campaign, today, read_from_db):
         response = client.get(

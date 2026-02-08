@@ -51,7 +51,7 @@ class ExpensesReport(MethodView):
             params.get('periodEnd'),
         )
         return {
-            'content': expenses,
+            'content': [e.to_dict() for e in expenses],
             'pagination': params | {'total': total},
             'filters': {
                 'periodStart': params.get('periodStart'),

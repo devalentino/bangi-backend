@@ -53,3 +53,11 @@ class ExpensesReportListResponse(Schema):
     content = fields.Nested(ExpensesReportResponseItem(many=True), required=True)
     pagination = fields.Nested(PaginationResponseSchema, required=True)
     filters = fields.Nested(ExpensesReportFilterSchema, required=True)
+
+
+class ExpensesDistributionParametersRequestSchema(Schema):
+    campaignId = fields.Integer(required=True)
+
+
+class ExpensesDistributionParametersResponseSchema(Schema):
+    parameter = fields.String(required=True)

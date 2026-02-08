@@ -10,6 +10,7 @@ from src.core.utils import utcnow
 from src.reports.entities import Expense
 from src.reports.exceptions import ExpensesDistributionParameterError
 from src.reports.repositories import BaseReportRepository
+from src.tracker.entities import TrackClick
 from src.tracker.services import TrackService
 
 
@@ -115,3 +116,15 @@ class ReportService:
         expenses = [Expense(campaign=campaign, date=d, distribution={}) for d in dates]
 
         return expenses, 0
+
+
+@service
+class ReportHelperService:
+    def list_expenses_distribution_parameters(self, campaign_id):
+        parameters = set()
+        query = TrackClick.select(TrackClick.parameters).where(TrackClick.campaign_id == campaign_id)
+        for click in query:
+            if click.parameters:
+                parameters.update(click.parameters.keys())
+
+        return sorted(parameters)

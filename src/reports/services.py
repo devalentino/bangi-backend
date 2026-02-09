@@ -9,7 +9,7 @@ from src.core.services import CampaignService
 from src.core.utils import utcnow
 from src.reports.entities import Expense
 from src.reports.exceptions import ExpensesDistributionParameterError
-from src.reports.repositories import BaseReportRepository
+from src.reports.repositories import StatisticsReportRepository
 from src.tracker.entities import TrackClick
 from src.tracker.services import TrackService
 
@@ -20,13 +20,13 @@ class ReportService:
         self,
         campaign_service: CampaignService,
         track_service: TrackService,
-        base_report_repository: BaseReportRepository,
+        statistics_report_repository: StatisticsReportRepository,
     ):
         self.campaign_service = campaign_service
         self.track_service = track_service
-        self.base_report_repository = base_report_repository
+        self.statistics_report_repository = statistics_report_repository
 
-    def _build_base_report(self, report_rows, parameters):
+    def _build_statistics_report(self, report_rows, parameters):
         report = []
         for clicks_count, leads_count, lead_status, date, *parameters_values in report_rows:
             report.append(
@@ -53,9 +53,9 @@ class ReportService:
 
         return all_dates_report
 
-    def base_report(self, parameters):
-        report_rows, available_parameters_row = self.base_report_repository.get(parameters)
-        report = self._build_base_report(report_rows, parameters)
+    def statistics_report(self, parameters):
+        report_rows, available_parameters_row = self.statistics_report_repository.get(parameters)
+        report = self._build_statistics_report(report_rows, parameters)
 
         available_parameters = []
         if available_parameters_row:

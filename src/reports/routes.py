@@ -27,7 +27,7 @@ class StatisticsReport(MethodView):
     @auth.login_required
     def get(self, params):
         report_service = container.get(ReportService)
-        report, available_parameters = report_service.base_report(
+        report, available_parameters = report_service.statistics_report(
             {
                 'campaign_id': params['campaignId'],
                 'period_start': params['periodStart'],

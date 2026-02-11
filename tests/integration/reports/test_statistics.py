@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from decimal import Decimal
 
 import pytest
 
@@ -66,7 +67,14 @@ def test_get_report(client, authorization, campaign, statistics_expenses, timest
                     'lead_status': 'accept',
                     'payouts': 2 * float(campaign['cost_value']),
                     'expenses': sum(statistics_expenses[campaign_id][(start_date + timedelta(days=3)).date()].values()),
-                    'roi': -75.35,
+                    'roi': Decimal(
+                        (
+                            2 * float(campaign['cost_value'])
+                            - sum(statistics_expenses[campaign_id][(start_date + timedelta(days=3)).date()].values())
+                        )
+                        / sum(statistics_expenses[campaign_id][(start_date + timedelta(days=3)).date()].values())
+                        * 100
+                    ).quantize(Decimal('0.00')),
                 },
                 {
                     'date': (start_date + timedelta(days=4)).strftime('%Y-%m-%d'),
@@ -75,7 +83,14 @@ def test_get_report(client, authorization, campaign, statistics_expenses, timest
                     'lead_status': 'accept',
                     'payouts': 2 * float(campaign['cost_value']),
                     'expenses': sum(statistics_expenses[campaign_id][(start_date + timedelta(days=4)).date()].values()),
-                    'roi': -5.21,
+                    'roi': Decimal(
+                        (
+                            2 * float(campaign['cost_value'])
+                            - sum(statistics_expenses[campaign_id][(start_date + timedelta(days=4)).date()].values())
+                        )
+                        / sum(statistics_expenses[campaign_id][(start_date + timedelta(days=4)).date()].values())
+                        * 100
+                    ).quantize(Decimal('0.00')),
                 },
                 {
                     'date': (start_date + timedelta(days=5)).strftime('%Y-%m-%d'),
@@ -84,7 +99,14 @@ def test_get_report(client, authorization, campaign, statistics_expenses, timest
                     'lead_status': 'accept',
                     'payouts': 1 * float(campaign['cost_value']),
                     'expenses': sum(statistics_expenses[campaign_id][(start_date + timedelta(days=5)).date()].values()),
-                    'roi': None,
+                    'roi': Decimal(
+                        (
+                            2 * float(campaign['cost_value'])
+                            - sum(statistics_expenses[campaign_id][(start_date + timedelta(days=5)).date()].values())
+                        )
+                        / sum(statistics_expenses[campaign_id][(start_date + timedelta(days=5)).date()].values())
+                        * 100
+                    ).quantize(Decimal('0.00')),
                 },
                 {
                     'date': end_date.strftime('%Y-%m-%d'),

@@ -51,12 +51,13 @@ def statistics_clicks(write_to_db, click_parameters, postback_parameters, campai
 
     for campaign_index in range(2):
         campaign = write_to_db(
-            'campaign', {
+            'campaign',
+            {
                 'name': f'Campaign {campaign_index}',
                 'expenses_distribution_parameter': 'ad_name',
                 'cost_model': 'cpa',
-                'cost_value': campaign_cost_value
-            }
+                'cost_value': campaign_cost_value,
+            },
         )
 
         for day in range(3):

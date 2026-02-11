@@ -1,5 +1,6 @@
 import json
 from datetime import datetime, time, timedelta
+from decimal import Decimal
 
 from wireup import service
 
@@ -30,10 +31,10 @@ class ReportService:
         date2distribution = {date: json.loads(distribution) for date, distribution in expenses_rows}
 
         report = []
-        for clicks_count, leads_count, payouts, lead_status, date, *parameters_values in report_rows:
+        for clicks_count, leads_count, payouts, lead_status, date_iso_str, *parameters_values in report_rows:
             report.append(
                 {
-                    'date': date,
+                    'date': date_iso_str,
                     'clicks': clicks_count,
                     'leads': leads_count,
                     'lead_status': lead_status,
@@ -50,18 +51,27 @@ class ReportService:
         all_dates_report = []
         days_delta = period_end_date - period_start_date
         for day in range(days_delta.days + 1):
-            date = (period_start_date + timedelta(days=day)).strftime('%Y-%m-%d')
-            records = [r for r in report if r['date'] == date] or [{'date': date, 'clicks': 0, 'payouts': 0}]
+            date = period_start_date + timedelta(days=day)
+            date_iso_str = date.strftime('%Y-%m-%d')
+            records = [r for r in report if r['date'] == date_iso_str] or [
+                {'date': date_iso_str, 'clicks': 0, 'payouts': 0}
+            ]
 
             # extend records with expenses
             if len(parameters['group_parameters']) == 0 and len(records) == 1:
-                records[0]['expenses'] = sum(date2distribution[date].values)
+                records[0]['expenses'] = None
+
+                distribution = date2distribution.get(date)
+                if distribution:
+                    records[0]['expenses'] = sum(distribution.values())
             elif (
                 len(parameters['group_parameters']) == 1
                 and parameters['group_parameters'][0] == expenses_distribution_parameter
             ):
+                distribution = date2distribution.get(date, {})
                 for record in records:
-                    record['expenses'] = date2distribution[date][expenses_distribution_parameter]
+                    expenses_distribution_parameter_value = record[expenses_distribution_parameter]
+                    record['expenses'] = distribution.get(expenses_distribution_parameter_value)
             else:
                 for record in records:
                     record['expenses'] = None
@@ -72,7 +82,9 @@ class ReportService:
         for record in all_dates_report:
             record['roi'] = None
             if record['expenses']:
-                record['roi'] = (record['payouts'] - record['expenses']) / record['expenses'] * 100
+                record['roi'] = Decimal(
+                    (float(record['payouts']) - record['expenses']) / record['expenses'] * 100
+                ).quantize(Decimal('0.01'))
 
         return all_dates_report
 

@@ -4,11 +4,12 @@ import pytest
 
 
 @pytest.fixture
-def campaign_id(statistics_clicks):
-    return next(iter(statistics_clicks.keys()))
+def campaign(statistics_clicks, read_from_db):
+    campaign_id = next(iter(statistics_clicks.keys()))
+    return read_from_db('campaign', filters={'id': campaign_id})
 
 
-def test_get_report(client, authorization, campaign_id, statistics_expenses, timestamp):
+def test_get_report(client, authorization, campaign, statistics_expenses, timestamp):
     start_timestamp = timestamp - 5 * 24 * 60 * 60
     end_timestamp = timestamp
 
@@ -16,7 +17,7 @@ def test_get_report(client, authorization, campaign_id, statistics_expenses, tim
         '/api/v2/reports/statistics',
         headers={'Authorization': authorization},
         query_string={
-            'campaignId': campaign_id,
+            'campaignId': campaign['id'],
             'periodStart': start_timestamp,
             'periodEnd': end_timestamp,
         },
@@ -25,6 +26,7 @@ def test_get_report(client, authorization, campaign_id, statistics_expenses, tim
 
     start_date = datetime.fromtimestamp(start_timestamp)
     end_date = datetime.fromtimestamp(end_timestamp)
+    campaign_id = campaign['id']
 
     assert response.json == {
         'content': {
@@ -42,23 +44,57 @@ def test_get_report(client, authorization, campaign_id, statistics_expenses, tim
                 'fbclid',
             ],
             'report': [
-                {'date': start_date.strftime('%Y-%m-%d'), 'clicks': 0},
-                {'date': (start_date + timedelta(days=1)).strftime('%Y-%m-%d'), 'clicks': 0},
-                {'date': (start_date + timedelta(days=2)).strftime('%Y-%m-%d'), 'clicks': 0},
+                {'date': start_date.strftime('%Y-%m-%d'), 'clicks': 0, 'payouts': 0, 'expenses': None, 'roi': None},
+                {
+                    'date': (start_date + timedelta(days=1)).strftime('%Y-%m-%d'),
+                    'clicks': 0,
+                    'payouts': 0,
+                    'expenses': None,
+                    'roi': None,
+                },
+                {
+                    'date': (start_date + timedelta(days=2)).strftime('%Y-%m-%d'),
+                    'clicks': 0,
+                    'payouts': 0,
+                    'expenses': None,
+                    'roi': None,
+                },
                 {
                     'date': (start_date + timedelta(days=3)).strftime('%Y-%m-%d'),
                     'clicks': 2,
-                    'lead_status': 'expect',
                     'leads': 2,
+                    'lead_status': 'accept',
+                    'payouts': 2 * float(campaign['cost_value']),
+                    'expenses': sum(statistics_expenses[campaign_id][(start_date + timedelta(days=3)).date()].values()),
+                    'roi': -75.35,
                 },
                 {
                     'date': (start_date + timedelta(days=4)).strftime('%Y-%m-%d'),
                     'clicks': 2,
-                    'lead_status': 'expect',
                     'leads': 2,
+                    'lead_status': 'accept',
+                    'payouts': 2 * float(campaign['cost_value']),
+                    'expenses': sum(statistics_expenses[campaign_id][(start_date + timedelta(days=4)).date()].values()),
+                    'roi': -5.21,
                 },
-                {'date': end_date.strftime('%Y-%m-%d'), 'clicks': 1, 'lead_status': 'expect', 'leads': 1},
-                {'date': end_date.strftime('%Y-%m-%d'), 'clicks': 1, 'lead_status': 'reject', 'leads': 1},
+                {
+                    'date': (start_date + timedelta(days=5)).strftime('%Y-%m-%d'),
+                    'clicks': 1,
+                    'leads': 1,
+                    'lead_status': 'accept',
+                    'payouts': 1 * float(campaign['cost_value']),
+                    'expenses': sum(statistics_expenses[campaign_id][(start_date + timedelta(days=5)).date()].values()),
+                    'roi': None,
+                },
+                {
+                    'date': end_date.strftime('%Y-%m-%d'),
+                    'clicks': 1,
+                    'leads': 1,
+                    'lead_status': 'reject',
+                    'payouts': 0.0,
+                    'expenses': None,
+                    'roi': None,
+                },
             ],
         }
     }

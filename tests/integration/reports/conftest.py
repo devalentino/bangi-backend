@@ -8,6 +8,11 @@ import pytest
 
 
 @pytest.fixture
+def campaign_cost_value():
+    return 5.0
+
+
+@pytest.fixture
 def click_parameters():
     return {
         'utm_source': 'fb',
@@ -41,12 +46,17 @@ def postback_parameters():
 
 
 @pytest.fixture
-def statistics_clicks(write_to_db, click_parameters, postback_parameters, timestamp):
+def statistics_clicks(write_to_db, click_parameters, postback_parameters, campaign_cost_value, timestamp):
     clicks = defaultdict(list)
 
     for campaign_index in range(2):
         campaign = write_to_db(
-            'campaign', {'name': f'Campaign {campaign_index}', 'expenses_distribution_parameter': 'ad_name'}
+            'campaign', {
+                'name': f'Campaign {campaign_index}',
+                'expenses_distribution_parameter': 'ad_name',
+                'cost_model': 'cpa',
+                'cost_value': campaign_cost_value
+            }
         )
 
         for day in range(3):
@@ -71,7 +81,7 @@ def statistics_clicks(write_to_db, click_parameters, postback_parameters, timest
                         {
                             'click_id': click['click_id'],
                             'parameters': postback_parameters | {'status': status},
-                            'cost_value': 5,
+                            'cost_value': campaign_cost_value,
                             'created_at': created_at,
                         },
                     )

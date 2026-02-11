@@ -45,7 +45,9 @@ def statistics_clicks(write_to_db, click_parameters, postback_parameters, timest
     clicks = defaultdict(list)
 
     for campaign_index in range(2):
-        campaign = write_to_db('campaign', {'name': f'Campaign {campaign_index}', 'expenses_distribution_parameter': 'ad_name'})
+        campaign = write_to_db(
+            'campaign', {'name': f'Campaign {campaign_index}', 'expenses_distribution_parameter': 'ad_name'}
+        )
 
         for day in range(3):
             for ad_index in range(2):
@@ -56,7 +58,8 @@ def statistics_clicks(write_to_db, click_parameters, postback_parameters, timest
                     {
                         'click_id': uuid4(),
                         'campaign_id': campaign['id'],
-                        'parameters': click_parameters | {'redirect_url': f'http://localhost/?ci={campaign_index}', 'ad_name': f'ad_{ad_index}'},
+                        'parameters': click_parameters
+                        | {'redirect_url': f'http://localhost/?ci={campaign_index}', 'ad_name': f'ad_{ad_index}'},
                         'created_at': created_at,
                     },
                 )
@@ -88,7 +91,7 @@ def statistics_clicks(write_to_db, click_parameters, postback_parameters, timest
 
 
 @pytest.fixture
-def statistics_expenses( statistics_clicks, timestamp, write_to_db):
+def statistics_expenses(statistics_clicks, timestamp, write_to_db):
     statistics_expenses = defaultdict(dict)
 
     for campaign_id, clicks in statistics_clicks.items():
@@ -101,7 +104,10 @@ def statistics_expenses( statistics_clicks, timestamp, write_to_db):
             date2distribution[date][ad_name] = round(random.uniform(0, 100), 2)
 
         for date, distribution in date2distribution.items():
-            write_to_db('expense', {'campaign_id': campaign_id, 'date': date, 'distribution': distribution, 'created_at': timestamp})
+            write_to_db(
+                'expense',
+                {'campaign_id': campaign_id, 'date': date, 'distribution': distribution, 'created_at': timestamp},
+            )
 
         statistics_expenses[campaign_id] = date2distribution
 

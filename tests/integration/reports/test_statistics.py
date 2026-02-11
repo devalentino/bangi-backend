@@ -101,7 +101,13 @@ def test_get_report__group_by_parameter(client, authorization, statistics_expens
             ],
             'report': [
                 {'date': start_date.strftime('%Y-%m-%d'), 'clicks': 0, 'payouts': 0, 'expenses': None, 'roi': None},
-                {'date': (start_date + timedelta(days=1)).strftime('%Y-%m-%d'), 'clicks': 0, 'payouts': 0, 'expenses': None, 'roi': None},
+                {
+                    'date': (start_date + timedelta(days=1)).strftime('%Y-%m-%d'),
+                    'clicks': 0,
+                    'payouts': 0,
+                    'expenses': None,
+                    'roi': None,
+                },
                 {
                     'date': (start_date + timedelta(days=2)).strftime('%Y-%m-%d'),
                     'ad_name': 'ad_0',

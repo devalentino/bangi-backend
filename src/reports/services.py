@@ -56,7 +56,10 @@ class ReportService:
             # extend records with expenses
             if len(parameters['group_parameters']) == 0 and len(records) == 1:
                 records[0]['expenses'] = sum(date2distribution[date].values)
-            elif len(parameters['group_parameters']) == 1 and parameters['group_parameters'][0] == expenses_distribution_parameter:
+            elif (
+                len(parameters['group_parameters']) == 1
+                and parameters['group_parameters'][0] == expenses_distribution_parameter
+            ):
                 for record in records:
                     record['expenses'] = date2distribution[date][expenses_distribution_parameter]
             else:
@@ -76,7 +79,9 @@ class ReportService:
     def statistics_report(self, parameters):
         campaign = self.campaign_service.get(parameters['campaign_id'])
         report_rows, expenses_rows, available_parameters_row = self.statistics_report_repository.get(parameters)
-        report = self._build_statistics_report(report_rows, expenses_rows, campaign.expenses_distribution_parameter, parameters)
+        report = self._build_statistics_report(
+            report_rows, expenses_rows, campaign.expenses_distribution_parameter, parameters
+        )
 
         available_parameters = []
         if available_parameters_row:

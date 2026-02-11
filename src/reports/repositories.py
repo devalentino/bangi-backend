@@ -4,8 +4,7 @@ from typing import Annotated
 from pymysql.converters import escape_string
 from wireup import Inject, service
 
-from peewee import Case, JOIN, MySQLDatabase, fn
-
+from peewee import JOIN, Case, MySQLDatabase, fn
 from src.reports.entities import Expense
 from src.tracker.entities import TrackClick, TrackPostback
 
@@ -76,12 +75,8 @@ class StatisticsReportRepository:
 
     def _expenses(self, parameters):
         start = datetime.fromtimestamp(parameters['period_start']).date()
-        query = (
-            Expense.select(Expense.date, Expense.distribution)
-            .where(
-                (Expense.campaign_id == parameters['campaign_id'])
-                & (Expense.date >= start)
-            )
+        query = Expense.select(Expense.date, Expense.distribution).where(
+            (Expense.campaign_id == parameters['campaign_id']) & (Expense.date >= start)
         )
 
         if parameters['period_end']:
@@ -91,14 +86,10 @@ class StatisticsReportRepository:
         cursor = self.database.execute(query)
         return cursor.fetchall()
 
-
     def _available_parameters(self, parameters):
-        query = (
-            TrackClick.select(TrackClick.parameters)
-            .where(
-                (TrackClick.campaign_id == parameters['campaign_id'])
-                & (TrackClick.created_at >= parameters['period_start'])
-            )
+        query = TrackClick.select(TrackClick.parameters).where(
+            (TrackClick.campaign_id == parameters['campaign_id'])
+            & (TrackClick.created_at >= parameters['period_start'])
         )
 
         if parameters['period_end']:

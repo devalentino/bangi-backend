@@ -26,15 +26,18 @@ class ReportService:
         self.track_service = track_service
         self.statistics_report_repository = statistics_report_repository
 
-    def _build_statistics_report(self, report_rows, parameters):
+    def _build_statistics_report(self, report_rows, expenses_rows, expenses_distribution_parameter, parameters):
+        date2distribution = {date: json.loads(distribution) for date, distribution in expenses_rows}
+
         report = []
-        for clicks_count, leads_count, lead_status, date, *parameters_values in report_rows:
+        for clicks_count, leads_count, payouts, lead_status, date, *parameters_values in report_rows:
             report.append(
                 {
                     'date': date,
                     'clicks': clicks_count,
                     'leads': leads_count,
                     'lead_status': lead_status,
+                    'payouts': payouts,
                     **dict(zip(parameters['group_parameters'], parameters_values)),
                 }
             )
@@ -48,14 +51,32 @@ class ReportService:
         days_delta = period_end_date - period_start_date
         for day in range(days_delta.days + 1):
             date = (period_start_date + timedelta(days=day)).strftime('%Y-%m-%d')
-            records = [r for r in report if r['date'] == date] or [{'date': date, 'clicks': 0}]
+            records = [r for r in report if r['date'] == date] or [{'date': date, 'clicks': 0, 'payouts': 0}]
+
+            # extend records with expenses
+            if len(parameters['group_parameters']) == 0 and len(records) == 1:
+                records[0]['expenses'] = sum(date2distribution[date].values)
+            elif len(parameters['group_parameters']) == 1 and parameters['group_parameters'][0] == expenses_distribution_parameter:
+                for record in records:
+                    record['expenses'] = date2distribution[date][expenses_distribution_parameter]
+            else:
+                for record in records:
+                    record['expenses'] = None
+
             all_dates_report.extend(records)
+
+        # add roi
+        for record in all_dates_report:
+            record['roi'] = None
+            if record['expenses']:
+                record['roi'] = (record['payouts'] - record['expenses']) / record['expenses'] * 100
 
         return all_dates_report
 
     def statistics_report(self, parameters):
-        report_rows, available_parameters_row = self.statistics_report_repository.get(parameters)
-        report = self._build_statistics_report(report_rows, parameters)
+        campaign = self.campaign_service.get(parameters['campaign_id'])
+        report_rows, expenses_rows, available_parameters_row = self.statistics_report_repository.get(parameters)
+        report = self._build_statistics_report(report_rows, expenses_rows, campaign.expenses_distribution_parameter, parameters)
 
         available_parameters = []
         if available_parameters_row:

@@ -4,11 +4,11 @@ import pytest
 
 
 @pytest.fixture
-def campaign_id(statistics):
-    return next(iter(statistics.keys()))
+def campaign_id(statistics_clicks):
+    return next(iter(statistics_clicks.keys()))
 
 
-def test_get_report(client, authorization, campaign_id, timestamp):
+def test_get_report(client, authorization, campaign_id, statistics_expenses, timestamp):
     start_timestamp = timestamp - 5 * 24 * 60 * 60
     end_timestamp = timestamp
 
@@ -64,7 +64,7 @@ def test_get_report(client, authorization, campaign_id, timestamp):
     }
 
 
-def test_get_report__group_by_parameter(client, authorization, campaign_id, timestamp):
+def test_get_report__group_by_parameter(client, authorization, statistics_expenses, campaign_id, timestamp):
     start_timestamp = timestamp - 4 * 24 * 60 * 60
     end_timestamp = timestamp
 
@@ -100,55 +100,73 @@ def test_get_report__group_by_parameter(client, authorization, campaign_id, time
                 'fbclid',
             ],
             'report': [
-                {'date': start_date.strftime('%Y-%m-%d'), 'clicks': 0},
-                {'date': (start_date + timedelta(days=1)).strftime('%Y-%m-%d'), 'clicks': 0},
+                {'date': start_date.strftime('%Y-%m-%d'), 'clicks': 0, 'payouts': 0, 'expenses': None, 'roi': None},
+                {'date': (start_date + timedelta(days=1)).strftime('%Y-%m-%d'), 'clicks': 0, 'payouts': 0, 'expenses': None, 'roi': None},
                 {
                     'date': (start_date + timedelta(days=2)).strftime('%Y-%m-%d'),
-                    'ad_name': 'ad0_0',
+                    'ad_name': 'ad_0',
                     'adset_name': 'adset9',
                     'clicks': 1,
                     'leads': 1,
-                    'lead_status': 'expect',
+                    'lead_status': 'accept',
+                    'payouts': 5.0,
+                    'expenses': None,
+                    'roi': None,
                 },
                 {
                     'date': (start_date + timedelta(days=2)).strftime('%Y-%m-%d'),
-                    'ad_name': 'ad0_1',
+                    'ad_name': 'ad_1',
                     'adset_name': 'adset9',
                     'clicks': 1,
                     'leads': 1,
-                    'lead_status': 'expect',
+                    'lead_status': 'accept',
+                    'payouts': 5.0,
+                    'expenses': None,
+                    'roi': None,
                 },
                 {
                     'date': (start_date + timedelta(days=3)).strftime('%Y-%m-%d'),
-                    'ad_name': 'ad0_0',
+                    'ad_name': 'ad_0',
                     'adset_name': 'adset9',
                     'clicks': 1,
                     'leads': 1,
-                    'lead_status': 'expect',
+                    'lead_status': 'accept',
+                    'payouts': 5.0,
+                    'expenses': None,
+                    'roi': None,
                 },
                 {
                     'date': (start_date + timedelta(days=3)).strftime('%Y-%m-%d'),
-                    'ad_name': 'ad0_1',
+                    'ad_name': 'ad_1',
                     'adset_name': 'adset9',
                     'clicks': 1,
                     'leads': 1,
-                    'lead_status': 'expect',
+                    'lead_status': 'accept',
+                    'payouts': 5.0,
+                    'expenses': None,
+                    'roi': None,
                 },
                 {
                     'date': end_date.strftime('%Y-%m-%d'),
-                    'ad_name': 'ad0_1',
+                    'ad_name': 'ad_1',
                     'adset_name': 'adset9',
                     'clicks': 1,
                     'leads': 1,
-                    'lead_status': 'expect',
+                    'lead_status': 'accept',
+                    'payouts': 5.0,
+                    'expenses': None,
+                    'roi': None,
                 },
                 {
                     'date': end_date.strftime('%Y-%m-%d'),
-                    'ad_name': 'ad0_0',
+                    'ad_name': 'ad_0',
                     'adset_name': 'adset9',
                     'clicks': 1,
                     'leads': 1,
                     'lead_status': 'reject',
+                    'payouts': 0.0,
+                    'expenses': None,
+                    'roi': None,
                 },
             ],
         }

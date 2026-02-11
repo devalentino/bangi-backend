@@ -1,3 +1,5 @@
+import json
+import random
 from collections import defaultdict
 from datetime import datetime, timedelta, timezone
 from uuid import uuid4
@@ -39,36 +41,35 @@ def postback_parameters():
 
 
 @pytest.fixture
-def statistics(write_to_db, click_parameters, postback_parameters):
+def statistics_clicks(write_to_db, click_parameters, postback_parameters, timestamp):
     clicks = defaultdict(list)
 
-    for ci in range(2):
-        campaign = write_to_db('campaign', {'name': f'Campaign {ci}'})
-        for tci in range(2):
-            for day in range(3):
+    for campaign_index in range(2):
+        campaign = write_to_db('campaign', {'name': f'Campaign {campaign_index}', 'expenses_distribution_parameter': 'ad_name'})
+
+        for day in range(3):
+            for ad_index in range(2):
+                created_at = (datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=day)).timestamp()
+
                 click = write_to_db(
                     'track_click',
                     {
                         'click_id': uuid4(),
                         'campaign_id': campaign['id'],
-                        'parameters': click_parameters
-                        | {'redirect_url': f'http://localhost/?ci={ci}', 'ad_name': f'ad{ci}_{tci}'},
-                        'created_at': (
-                            datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=day)
-                        ).timestamp(),
+                        'parameters': click_parameters | {'redirect_url': f'http://localhost/?ci={campaign_index}', 'ad_name': f'ad_{ad_index}'},
+                        'created_at': created_at,
                     },
                 )
                 clicks[campaign['id']].append(click)
 
-                for status in 'accept', 'expect':
+                for status in 'expect', 'accept':
                     write_to_db(
                         'track_postback',
                         {
                             'click_id': click['click_id'],
                             'parameters': postback_parameters | {'status': status},
-                            'created_at': (
-                                datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=day)
-                            ).timestamp(),
+                            'cost_value': 5,
+                            'created_at': created_at,
                         },
                     )
 
@@ -79,8 +80,29 @@ def statistics(write_to_db, click_parameters, postback_parameters):
             {
                 'click_id': click['click_id'],
                 'parameters': postback_parameters | {'status': 'reject'},
-                'created_at': (datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=day)).timestamp(),
+                'created_at': timestamp,
             },
         )
 
     return clicks
+
+
+@pytest.fixture
+def statistics_expenses( statistics_clicks, timestamp, write_to_db):
+    statistics_expenses = defaultdict(dict)
+
+    for campaign_id, clicks in statistics_clicks.items():
+        date2distribution = defaultdict(dict)
+        for click in clicks:
+            date = datetime.fromtimestamp(click['created_at']).date()
+            click_parameters = json.loads(click['parameters'])
+            ad_name = click_parameters['ad_name']
+
+            date2distribution[date][ad_name] = round(random.uniform(0, 100), 2)
+
+        for date, distribution in date2distribution.items():
+            write_to_db('expense', {'campaign_id': campaign_id, 'date': date, 'distribution': distribution, 'created_at': timestamp})
+
+        statistics_expenses[campaign_id] = date2distribution
+
+    return statistics_expenses

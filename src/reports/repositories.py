@@ -1,9 +1,12 @@
+from datetime import datetime
 from typing import Annotated
 
 from pymysql.converters import escape_string
 from wireup import Inject, service
 
-from peewee import JOIN, MySQLDatabase, fn
+from peewee import Case, JOIN, MySQLDatabase, fn
+
+from src.reports.entities import Expense
 from src.tracker.entities import TrackClick, TrackPostback
 
 
@@ -13,13 +16,17 @@ class StatisticsReportRepository:
         self.database = database
         self.gap_seconds = gap_seconds
 
-    def _report(self, parameters):
+    def _leads_statistics(self, parameters):
+        status = fn.json_value(TrackPostback.parameters, '$.status')
+        cost_value = Case(None, [(status == 'accept', TrackPostback.cost_value)], 0)
+
         leads_subquery = TrackPostback.select(
             TrackPostback.click_id,
-            fn.json_value(TrackPostback.parameters, '$.status').alias('status'),
+            status.alias('status'),
             fn.row_number()
             .over(partition_by=TrackPostback.click_id, order_by=TrackPostback.id.desc())
             .alias('row_number'),
+            cost_value.alias('cost_value'),
         ).where(TrackPostback.created_at >= parameters['period_start'] - self.gap_seconds)
 
         if 'period_end' in parameters:
@@ -33,6 +40,7 @@ class StatisticsReportRepository:
         select = [
             fn.COUNT(TrackClick.click_id).alias('clicks_count'),
             fn.COUNT(leads_subquery.c.click_id).alias('leads_count'),
+            fn.SUM(leads_subquery.c.cost_value).alias('payouts'),
             lead_status,
             date,
         ]
@@ -58,7 +66,7 @@ class StatisticsReportRepository:
             )
         )
 
-        if 'period_end' in parameters:
+        if parameters['period_end']:
             query = query.where(TrackClick.created_at < parameters['period_end'] + self.gap_seconds)
 
         query = query.group_by(*group_by).order_by(date)
@@ -66,22 +74,43 @@ class StatisticsReportRepository:
         cursor = self.database.execute(query)
         return cursor.fetchall()
 
+    def _expenses(self, parameters):
+        start = datetime.fromtimestamp(parameters['period_start']).date()
+        query = (
+            Expense.select(Expense.date, Expense.distribution)
+            .where(
+                (Expense.campaign_id == parameters['campaign_id'])
+                & (Expense.date >= start)
+            )
+        )
+
+        if parameters['period_end']:
+            end = datetime.fromtimestamp(parameters['period_end']).date()
+            query = query.where(Expense.date <= end)
+
+        cursor = self.database.execute(query)
+        return cursor.fetchall()
+
+
     def _available_parameters(self, parameters):
         query = (
             TrackClick.select(TrackClick.parameters)
             .where(
                 (TrackClick.campaign_id == parameters['campaign_id'])
                 & (TrackClick.created_at >= parameters['period_start'])
-                & (TrackClick.created_at <= parameters['period_end'])
             )
-            .order_by(TrackClick.id.desc())
-            .limit(1)
         )
+
+        if parameters['period_end']:
+            query = query.where(TrackClick.created_at <= parameters['period_end'])
+
+        query = query.order_by(TrackClick.id.desc()).limit(1)
 
         cursor = self.database.execute(query)
         return cursor.fetchone()
 
     def get(self, parameters):
-        report = self._report(parameters)
+        leads_statistics = self._leads_statistics(parameters)
         available_parameters = self._available_parameters(parameters)
-        return report, available_parameters
+        expenses = self._expenses(parameters)
+        return leads_statistics, expenses, available_parameters

@@ -1,5 +1,4 @@
 from datetime import datetime, timedelta
-from decimal import Decimal
 
 
 def test_get_report(client, authorization, campaign, statistics_expenses, timestamp):
@@ -17,12 +16,68 @@ def test_get_report(client, authorization, campaign, statistics_expenses, timest
     )
     assert response.status_code == 200, response.text
 
-    start_date = datetime.fromtimestamp(start_timestamp)
-    end_date = datetime.fromtimestamp(end_timestamp)
-    campaign_id = campaign['id']
+    start_time = datetime.fromtimestamp(start_timestamp)
+    end_time = datetime.fromtimestamp(end_timestamp)
 
     assert response.json == {
         'content': {
+            'report': {
+                '2026-02-07': {
+                    'statuses': {'clicks': 0, 'leads': 0, 'payouts': 0},
+                    'expenses': None,
+                    'roi_accepted': None,
+                    'roi_expected': None,
+                },
+                '2026-02-08': {
+                    'statuses': {'clicks': 0, 'leads': 0, 'payouts': 0},
+                    'expenses': None,
+                    'roi_accepted': None,
+                    'roi_expected': None,
+                },
+                '2026-02-09': {
+                    'statuses': {'clicks': 0, 'leads': 0, 'payouts': 0},
+                    'expenses': None,
+                    'roi_accepted': None,
+                    'roi_expected': None,
+                },
+                '2026-02-10': {
+                    'statuses': {
+                        'null': {'clicks': 50, 'leads': 0, 'payouts': None},
+                        'accept': {'clicks': 2, 'leads': 2, 'payouts': 2 * campaign['cost_value']},
+                        'expect': {'clicks': 1, 'leads': 1, 'payouts': 1 * campaign['cost_value']},
+                        'reject': {'clicks': 1, 'leads': 1, 'payouts': 0.0},
+                        'trash': {'clicks': 1, 'leads': 1, 'payouts': 0.0},
+                    },
+                    'expenses': sum(statistics_expenses[(start_time + timedelta(days=3)).date()].values()),
+                    'roi_accepted': (
+                        2 * campaign['cost_value']
+                        - sum(statistics_expenses[(start_time + timedelta(days=3)).date()].values())
+                    )
+                    / sum(statistics_expenses[(start_time + timedelta(days=3)).date()].values())
+                    * 100,
+                    'roi_expected': (
+                        2 * campaign['cost_value'] + 1 * campaign['cost_value']
+                        - sum(statistics_expenses[(start_time + timedelta(days=3)).date()].values())
+                    )
+                    / sum(statistics_expenses[(start_time + timedelta(days=3)).date()].values())
+                    * 100,
+                },
+                '2026-02-11': {
+                    'statuses': {'clicks': 0, 'leads': 0, 'payouts': 0},
+                    'expenses': None,
+                    'roi_accepted': None,
+                    'roi_expected': None,
+                },
+                '2026-02-12': {
+                    'statuses': {
+                        'null': {'clicks': 7, 'leads': 0, 'payouts': None},
+                        'accept': {'clicks': 1, 'leads': 1, 'payouts': 10.0},
+                    },
+                    'expenses': sum(statistics_expenses[end_time.date()].values()),
+                    'roi_accepted': -25.595238095238095,
+                    'roi_expected': -25.595238095238095,
+                },
+            },
             'parameters': [
                 'utm_source',
                 'utm_content',
@@ -35,92 +90,6 @@ def test_get_report(client, authorization, campaign, statistics_expenses, timest
                 'utm_term',
                 'adset_name',
                 'fbclid',
-            ],
-            'report': [
-                {'date': start_date.strftime('%Y-%m-%d'), 'clicks': 0, 'payouts': 0, 'expenses': None, 'roi': None},
-                {
-                    'date': (start_date + timedelta(days=1)).strftime('%Y-%m-%d'),
-                    'clicks': 0,
-                    'payouts': 0,
-                    'expenses': None,
-                    'roi': None,
-                },
-                {
-                    'date': (start_date + timedelta(days=2)).strftime('%Y-%m-%d'),
-                    'clicks': 0,
-                    'payouts': 0,
-                    'expenses': None,
-                    'roi': None,
-                },
-                {
-                    'date': (start_date + timedelta(days=3)).strftime('%Y-%m-%d'),
-                    'clicks': 2,
-                    'leads': 2,
-                    'lead_status': 'accept',
-                    'payouts': 2 * float(campaign['cost_value']),
-                    'expenses': sum(statistics_expenses[campaign_id][(start_date + timedelta(days=3)).date()].values()),
-                    'roi': float(
-                        Decimal(
-                            (
-                                2 * float(campaign['cost_value'])
-                                - sum(
-                                    statistics_expenses[campaign_id][(start_date + timedelta(days=3)).date()].values()
-                                )
-                            )
-                            / sum(statistics_expenses[campaign_id][(start_date + timedelta(days=3)).date()].values())
-                            * 100
-                        ).quantize(Decimal('0.00'))
-                    ),
-                },
-                {
-                    'date': (start_date + timedelta(days=4)).strftime('%Y-%m-%d'),
-                    'clicks': 2,
-                    'leads': 2,
-                    'lead_status': 'accept',
-                    'payouts': 2 * float(campaign['cost_value']),
-                    'expenses': sum(statistics_expenses[campaign_id][(start_date + timedelta(days=4)).date()].values()),
-                    'roi': float(
-                        Decimal(
-                            (
-                                2 * float(campaign['cost_value'])
-                                - sum(
-                                    statistics_expenses[campaign_id][(start_date + timedelta(days=4)).date()].values()
-                                )
-                            )
-                            / sum(statistics_expenses[campaign_id][(start_date + timedelta(days=4)).date()].values())
-                            * 100
-                        ).quantize(Decimal('0.00'))
-                    ),
-                },
-                {
-                    'date': (start_date + timedelta(days=5)).strftime('%Y-%m-%d'),
-                    'clicks': 1,
-                    'leads': 1,
-                    'lead_status': 'accept',
-                    'payouts': 1 * float(campaign['cost_value']),
-                    'expenses': sum(statistics_expenses[campaign_id][(start_date + timedelta(days=5)).date()].values()),
-                    'roi': float(
-                        Decimal(
-                            (
-                                2 * float(campaign['cost_value'])
-                                - sum(
-                                    statistics_expenses[campaign_id][(start_date + timedelta(days=5)).date()].values()
-                                )
-                            )
-                            / sum(statistics_expenses[campaign_id][(start_date + timedelta(days=5)).date()].values())
-                            * 100
-                        ).quantize(Decimal('0.00'))
-                    ),
-                },
-                {
-                    'date': end_date.strftime('%Y-%m-%d'),
-                    'clicks': 1,
-                    'leads': 1,
-                    'lead_status': 'reject',
-                    'payouts': 0.0,
-                    'expenses': None,
-                    'roi': None,
-                },
             ],
         }
     }

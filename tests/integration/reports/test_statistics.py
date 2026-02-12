@@ -92,10 +92,7 @@ def test_get_report(client, authorization, campaign, statistics_expenses, timest
                     'roi_accepted': (1 * float(campaign['cost_value']) - sum(statistics_expenses[end_date].values()))
                     / sum(statistics_expenses[end_date].values())
                     * 100,
-                    'roi_expected': (
-                        1 * float(campaign['cost_value'])
-                        - sum(statistics_expenses[end_date].values())
-                    )
+                    'roi_expected': (1 * float(campaign['cost_value']) - sum(statistics_expenses[end_date].values()))
                     / sum(statistics_expenses[end_date].values())
                     * 100,
                 },

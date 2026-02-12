@@ -35,7 +35,12 @@ class StatisticsReport(MethodView):
                 'group_parameters': params['groupParameters'],
             }
         )
-        return {'content': {'report': report, 'parameters': available_parameters}}
+        return {
+            'content': {
+                'report': {dt.isoformat(): stats for dt, stats in report.items()},
+                'parameters': available_parameters,
+            }
+        }
 
 
 @blueprint.route('/expenses')

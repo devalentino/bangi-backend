@@ -5,6 +5,7 @@ from pymysql.converters import escape_string
 from wireup import Inject, service
 
 from peewee import JOIN, Case, MySQLDatabase, fn
+from src.core.enums import LeadStatus
 from src.reports.entities import Expense
 from src.tracker.entities import TrackClick, TrackPostback
 
@@ -17,7 +18,9 @@ class StatisticsReportRepository:
 
     def _leads_statistics(self, parameters):
         status = fn.json_value(TrackPostback.parameters, '$.status')
-        cost_value = Case(None, [(status == 'accept', TrackPostback.cost_value)], 0)
+        cost_value = Case(
+            None, [((status == LeadStatus.accept.value) | (status == LeadStatus.expect), TrackPostback.cost_value)], 0
+        )
 
         leads_subquery = TrackPostback.select(
             TrackPostback.click_id,
@@ -33,7 +36,7 @@ class StatisticsReportRepository:
                 TrackPostback.created_at < parameters['period_end'] + self.gap_seconds
             )
 
-        date = fn.from_unixtime(TrackClick.created_at, '%Y-%m-%d').alias('date')
+        date = fn.date(fn.from_unixtime(TrackClick.created_at)).alias('date')
         lead_status = leads_subquery.c.status.alias('lead_status')
 
         select = [

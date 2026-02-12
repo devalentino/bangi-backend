@@ -15,7 +15,7 @@ class StisticsReportRequest(Schema):
 
 
 class StatisticsReportContent(Schema):
-    report = fields.List(fields.Dict, required=True)
+    report = fields.Dict()
     parameters = fields.List(fields.String)
 
 

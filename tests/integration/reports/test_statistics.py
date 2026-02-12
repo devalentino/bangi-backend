@@ -114,7 +114,7 @@ def test_get_report(client, authorization, campaign, statistics_expenses, timest
     }
 
 
-def test_get_report__group_by_parameter(client, authorization, statistics_expenses, campaign_id, timestamp):
+def test_get_report__group_by_parameter(client, authorization, statistics_expenses, campaign, timestamp):
     start_timestamp = timestamp - 4 * 24 * 60 * 60
     end_timestamp = timestamp
 
@@ -122,10 +122,10 @@ def test_get_report__group_by_parameter(client, authorization, statistics_expens
         '/api/v2/reports/statistics',
         headers={'Authorization': authorization},
         query_string={
-            'campaignId': campaign_id,
+            'campaignId': campaign['id'],
             'periodStart': timestamp - 4 * 24 * 60 * 60,
             'periodEnd': timestamp,
-            'groupParameters': 'ad_name,adset_name',
+            'groupParameters': 'utm_source,ad_name',
         },
     )
 
@@ -242,20 +242,5 @@ def test_get_report__no_statistics(client, authorization, timestamp):
             'periodEnd': end_timestamp,
         },
     )
-    assert response.status_code == 200, response.text
-
-    start_date = datetime.fromtimestamp(start_timestamp)
-    end_date = datetime.fromtimestamp(end_timestamp)
-
-    assert response.json == {
-        'content': {
-            'parameters': [],
-            'report': [
-                {'date': start_date.strftime('%Y-%m-%d'), 'clicks': 0},
-                {'date': (start_date + timedelta(days=1)).strftime('%Y-%m-%d'), 'clicks': 0},
-                {'date': (start_date + timedelta(days=2)).strftime('%Y-%m-%d'), 'clicks': 0},
-                {'date': (start_date + timedelta(days=3)).strftime('%Y-%m-%d'), 'clicks': 0},
-                {'date': end_date.strftime('%Y-%m-%d'), 'clicks': 0},
-            ],
-        }
-    }
+    assert response.status_code == 404, response.text
+    assert response.json == {'message': 'Campaign does not exist'}

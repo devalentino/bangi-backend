@@ -27,18 +27,26 @@ class ReportService:
         self.track_service = track_service
         self.statistics_report_repository = statistics_report_repository
 
-    def _build_statistics_report(self, report_rows, expenses_rows, expenses_distribution_parameter, parameters):
+    def _fill_clicks(self, statistics_container, group_parameters, clicks_count, leads_count, payouts, lead_status):
+        if len(group_parameters) == 0:
+            statistics_container.setdefault('statuses', {})
+            statistics_container.setdefault('clicks', 0)
+
+            statistics_container['clicks'] += clicks_count
+            if lead_status:
+                statistics_container['statuses'][lead_status] = {'leads': leads_count, 'payouts': payouts}
+
+            return
+
+        group_parameter = group_parameters[0]
+        statistics_container.setdefault(group_parameter, {})
+        self._fill_clicks(statistics_container[group_parameter], group_parameters[1:], clicks_count, leads_count, payouts, lead_status)
+
+    def _build_statistics_report(self, report_rows, expenses_rows, parameters):
         report = defaultdict(dict)
 
         for clicks_count, leads_count, payouts, lead_status, date, *parameters_values in report_rows:
-            report[date].setdefault('statuses', {})
-            report[date].setdefault('clicks', 0)
-
-            report[date]['clicks'] += clicks_count
-            if lead_status:
-                report[date]['statuses'][lead_status] = {'leads': leads_count, 'payouts': payouts}
-
-            report[date] |= dict(zip(parameters['group_parameters'], parameters_values))
+            self._fill_clicks(report[date], parameters_values, clicks_count, leads_count, payouts, lead_status)
 
         date2distribution = {date: json.loads(distribution) for date, distribution in expenses_rows}
 
@@ -52,15 +60,11 @@ class ReportService:
             date = period_start_date + timedelta(days=day)
 
             if date not in report:
-                report[date] = {'clicks': 0, 'statuses': {}}
+                report[date] = {}
 
             # extend records with expenses
             if len(parameters['group_parameters']) == 0:
                 daily_statistics = report[date]
-
-                daily_statistics['expenses'] = 0
-                daily_statistics['roi_accepted'] = 0
-                daily_statistics['roi_expected'] = 0
 
                 distribution = date2distribution.get(date)
                 if distribution:
@@ -85,16 +89,24 @@ class ReportService:
                         (float(payouts_expected) - daily_statistics['expenses']) / daily_statistics['expenses'] * 100
                     )
             else:
-                raise RuntimeError('implement distribution logic')
+                distribution = date2distribution.get(date)
+                if distribution:
+                    for distribution_value, expenses in distribution.items():
+                        report[date][distribution_value]['expenses'] = expenses
 
         return report
 
     def statistics_report(self, parameters):
         campaign = self.campaign_service.get(parameters['campaign_id'])
+
+        # make expenses_distribution_parameter in group parameters, expenses will be attached to same level
+        group_parameters = [p for p in parameters['group_parameters'] if p != campaign.expenses_distribution_parameter]
+        if campaign.expenses_distribution_parameter in parameters['group_parameters']:
+            group_parameters.insert(0, campaign.expenses_distribution_parameter)
+        parameters['group_parameters'] = group_parameters
+
         report_rows, expenses_rows, available_parameters_row = self.statistics_report_repository.get(parameters)
-        report = self._build_statistics_report(
-            report_rows, expenses_rows, campaign.expenses_distribution_parameter, parameters
-        )
+        report = self._build_statistics_report(report_rows, expenses_rows, parameters)
 
         available_parameters = []
         if available_parameters_row:

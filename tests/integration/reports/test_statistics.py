@@ -19,83 +19,69 @@ def test_get_report(client, authorization, campaign, statistics_expenses, timest
 
     start_date = datetime.fromtimestamp(start_timestamp).date()
     end_date = datetime.fromtimestamp(end_timestamp).date()
+    cost_value = float(campaign['cost_value'])
 
     assert response.json == {
         'content': {
             'report': {
-                start_date.isoformat(): {
-                    'clicks': 0,
-                    'statuses': {},
-                    'expenses': 0,
-                    'roi_accepted': 0,
-                    'roi_expected': 0,
-                },
-                (start_date + timedelta(days=1)).isoformat(): {
-                    'clicks': 0,
-                    'statuses': {},
-                    'expenses': 0,
-                    'roi_accepted': 0,
-                    'roi_expected': 0,
-                },
-                (start_date + timedelta(days=2)).isoformat(): {
-                    'clicks': 0,
-                    'statuses': {},
-                    'expenses': 0,
-                    'roi_accepted': 0,
-                    'roi_expected': 0,
-                },
+                start_date.isoformat(): {},
+                (start_date + timedelta(days=1)).isoformat(): {},
+                (start_date + timedelta(days=2)).isoformat(): {},
                 (start_date + timedelta(days=3)).isoformat(): {
                     'statuses': {
-                        'accept': {'leads': 1, 'payouts': 1 * float(campaign['cost_value'])},
+                        'accept': {'leads': 1, 'payouts': 1 * cost_value},
                         'trash': {'leads': 1, 'payouts': 0.0},
                     },
                     'clicks': 30,
                     'expenses': sum(statistics_expenses[start_date + timedelta(days=3)].values()),
                     'roi_accepted': (
-                        1 * float(campaign['cost_value'])
-                        - sum(statistics_expenses[start_date + timedelta(days=3)].values())
-                    )
-                    / sum(statistics_expenses[start_date + timedelta(days=3)].values())
-                    * 100,
+                        (1 * cost_value - sum(statistics_expenses[start_date + timedelta(days=3)].values()))
+                        / sum(statistics_expenses[start_date + timedelta(days=3)].values())
+                        * 100
+                    ),
                     'roi_expected': (
-                        1 * float(campaign['cost_value'])
-                        - sum(statistics_expenses[start_date + timedelta(days=3)].values())
-                    )
-                    / sum(statistics_expenses[start_date + timedelta(days=3)].values())
-                    * 100,
+                        (1 * cost_value - sum(statistics_expenses[start_date + timedelta(days=3)].values()))
+                        / sum(statistics_expenses[start_date + timedelta(days=3)].values())
+                        * 100
+                    ),
                 },
                 (start_date + timedelta(days=4)).isoformat(): {
                     'statuses': {
-                        'accept': {'leads': 1, 'payouts': 1 * float(campaign['cost_value'])},
-                        'expect': {'leads': 1, 'payouts': 1 * float(campaign['cost_value'])},
+                        'accept': {'leads': 1, 'payouts': 1 * cost_value},
+                        'expect': {'leads': 1, 'payouts': 1 * cost_value},
                         'reject': {'leads': 1, 'payouts': 0.0},
                     },
                     'clicks': 25,
                     'expenses': sum(statistics_expenses[start_date + timedelta(days=4)].values()),
                     'roi_accepted': (
-                        1 * float(campaign['cost_value'])
-                        - sum(statistics_expenses[start_date + timedelta(days=4)].values())
-                    )
-                    / sum(statistics_expenses[start_date + timedelta(days=4)].values())
-                    * 100,
+                        (1 * cost_value - sum(statistics_expenses[start_date + timedelta(days=4)].values()))
+                        / sum(statistics_expenses[start_date + timedelta(days=4)].values())
+                        * 100
+                    ),
                     'roi_expected': (
-                        1 * float(campaign['cost_value'])
-                        + 1 * float(campaign['cost_value'])
-                        - sum(statistics_expenses[start_date + timedelta(days=4)].values())
-                    )
-                    / sum(statistics_expenses[start_date + timedelta(days=4)].values())
-                    * 100,
+                        (
+                            1 * cost_value
+                            + 1 * cost_value
+                            - sum(statistics_expenses[start_date + timedelta(days=4)].values())
+                        )
+                        / sum(statistics_expenses[start_date + timedelta(days=4)].values())
+                        * 100
+                    ),
                 },
                 end_date.isoformat(): {
-                    'statuses': {'accept': {'leads': 1, 'payouts': 1 * float(campaign['cost_value'])}},
+                    'statuses': {'accept': {'leads': 1, 'payouts': 1 * cost_value}},
                     'clicks': 8,
                     'expenses': sum(statistics_expenses[end_date].values()),
-                    'roi_accepted': (1 * float(campaign['cost_value']) - sum(statistics_expenses[end_date].values()))
-                    / sum(statistics_expenses[end_date].values())
-                    * 100,
-                    'roi_expected': (1 * float(campaign['cost_value']) - sum(statistics_expenses[end_date].values()))
-                    / sum(statistics_expenses[end_date].values())
-                    * 100,
+                    'roi_accepted': (
+                        (1 * cost_value - sum(statistics_expenses[end_date].values()))
+                        / sum(statistics_expenses[end_date].values())
+                        * 100
+                    ),
+                    'roi_expected': (
+                        (1 * cost_value - sum(statistics_expenses[end_date].values()))
+                        / sum(statistics_expenses[end_date].values())
+                        * 100
+                    ),
                 },
             },
             'parameters': [

@@ -142,7 +142,7 @@ class ReportService:
             (available_parameters_row,) = available_parameters_row
             available_parameters = list(json.loads(available_parameters_row).keys()) if available_parameters_row else []
 
-        return report, available_parameters
+        return report, available_parameters, group_parameters
 
     def submit_expenses(self, campaign_id, expenses_distribution_parameter, date_distributions):
         campaign = self.campaign_service.get(campaign_id)

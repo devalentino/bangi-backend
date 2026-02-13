@@ -23,6 +23,7 @@ def test_get_report(client, authorization, campaign, statistics_expenses, timest
 
     assert response.json == {
         'content': {
+            'groupParameters': [],
             'report': {
                 start_date.isoformat(): {},
                 (start_date + timedelta(days=1)).isoformat(): {},
@@ -137,6 +138,7 @@ def test_get_report__group_by_parameter(client, authorization, statistics_expens
                 'adset_name',
                 'fbclid',
             ],
+            'groupParameters': ['ad_name', 'utm_source'],
             'report': {
                 start_date.isoformat(): {},
                 (start_date + timedelta(days=1)).isoformat(): {},

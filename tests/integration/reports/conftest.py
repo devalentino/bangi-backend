@@ -57,7 +57,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
                 'click_id': uuid4(),
                 'campaign_id': campaign['id'],
                 'parameters': click_parameters
-                | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_1', 'utm_source': random.choice(['fb', 'inst'])},
+                | {
+                    'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                    'ad_name': 'ad_1',
+                    'utm_source': random.choice(['fb', 'inst']),
+                },
                 'created_at': timestamp - timedelta(days=2).total_seconds(),
             },
         )
@@ -71,7 +75,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
                 'click_id': uuid4(),
                 'campaign_id': campaign['id'],
                 'parameters': click_parameters
-                | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_1', 'utm_source': random.choice(['fb', 'inst'])},
+                | {
+                    'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                    'ad_name': 'ad_1',
+                    'utm_source': random.choice(['fb', 'inst']),
+                },
                 'created_at': timestamp - timedelta(days=1).total_seconds(),
             },
         )
@@ -83,7 +91,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
             'click_id': uuid4(),
             'campaign_id': campaign['id'],
             'parameters': click_parameters
-            | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_1', 'utm_source': random.choice(['fb', 'inst'])},
+            | {
+                'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                'ad_name': 'ad_1',
+                'utm_source': 'fb',
+            },
             'created_at': timestamp - timedelta(days=1).total_seconds(),
         },
     )
@@ -107,7 +119,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
                 'click_id': uuid4(),
                 'campaign_id': campaign['id'],
                 'parameters': click_parameters
-                | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_1', 'utm_source': random.choice(['fb', 'inst'])},
+                | {
+                    'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                    'ad_name': 'ad_1',
+                    'utm_source': random.choice(['fb', 'inst']),
+                },
                 'created_at': timestamp,
             },
         )
@@ -119,7 +135,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
             'click_id': uuid4(),
             'campaign_id': campaign['id'],
             'parameters': click_parameters
-            | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_1', 'utm_source': random.choice(['fb', 'inst'])},
+            | {
+                'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                'ad_name': 'ad_1',
+                'utm_source': 'fb',
+            },
             'created_at': timestamp,
         },
     )
@@ -143,7 +163,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
                 'click_id': uuid4(),
                 'campaign_id': campaign['id'],
                 'parameters': click_parameters
-                | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_2', 'utm_source': random.choice(['fb', 'inst'])},
+                | {
+                    'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                    'ad_name': 'ad_2',
+                    'utm_source': random.choice(['fb', 'inst']),
+                },
                 'created_at': timestamp - timedelta(days=2).total_seconds(),
             },
         )
@@ -155,7 +179,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
             'click_id': uuid4(),
             'campaign_id': campaign['id'],
             'parameters': click_parameters
-            | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_2', 'utm_source': random.choice(['fb', 'inst'])},
+            | {
+                'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                'ad_name': 'ad_2',
+                'utm_source': 'fb',
+            },
             'created_at': timestamp - timedelta(days=2).total_seconds(),
         },
     )
@@ -167,7 +195,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
             'click_id': uuid4(),
             'campaign_id': campaign['id'],
             'parameters': click_parameters
-            | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_2', 'utm_source': random.choice(['fb', 'inst'])},
+            | {
+                'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                'ad_name': 'ad_2',
+                'utm_source': 'fb',
+            },
             'created_at': timestamp - timedelta(days=2).total_seconds(),
         },
     )
@@ -201,7 +233,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
                 'click_id': uuid4(),
                 'campaign_id': campaign['id'],
                 'parameters': click_parameters
-                | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_2', 'utm_source': random.choice(['fb', 'inst'])},
+                | {
+                    'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                    'ad_name': 'ad_2',
+                    'utm_source': random.choice(['fb', 'inst']),
+                },
                 'created_at': timestamp - timedelta(days=1).total_seconds(),
             },
         )
@@ -213,7 +249,11 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
             'click_id': uuid4(),
             'campaign_id': campaign['id'],
             'parameters': click_parameters
-            | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_2', 'utm_source': random.choice(['fb', 'inst'])},
+            | {
+                'redirect_url': 'http://localhost/?ci={campaign["id"]}',
+                'ad_name': 'ad_2',
+                'utm_source': 'fb',
+            },
             'created_at': timestamp - timedelta(days=1).total_seconds(),
         },
     )
@@ -225,7 +265,7 @@ def statistics_clicks(write_to_db, campaign, click_parameters, postback_paramete
             'click_id': uuid4(),
             'campaign_id': campaign['id'],
             'parameters': click_parameters
-            | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_2', 'utm_source': random.choice(['fb', 'inst'])},
+            | {'redirect_url': 'http://localhost/?ci={campaign["id"]}', 'ad_name': 'ad_2', 'utm_source': 'fb'},
             'created_at': timestamp - timedelta(days=1).total_seconds(),
         },
     )

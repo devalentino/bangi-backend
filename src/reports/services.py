@@ -27,6 +27,31 @@ class ReportService:
         self.track_service = track_service
         self.statistics_report_repository = statistics_report_repository
 
+    def _get_payouts(self, statistics_container, group_parameters):
+        if len(group_parameters) > 0:
+            payouts_accepted_sum = 0
+            payouts_expected_sum = 0
+
+            for stats in statistics_container.values():
+                payouts_accepted, payouts_expected = self._get_payouts(stats, group_parameters[1:])
+                payouts_accepted_sum += payouts_accepted
+                payouts_expected_sum += payouts_expected
+
+            return payouts_accepted_sum, payouts_expected_sum
+
+        payouts_accepted = sum(
+            stats['payouts']
+            for status, stats in statistics_container['statuses'].items()
+            if status == LeadStatus.accept
+        )
+        payouts_expected = sum(
+            stats['payouts']
+            for status, stats in statistics_container['statuses'].items()
+            if status in {LeadStatus.accept, LeadStatus.expect}
+        )
+
+        return payouts_accepted, payouts_expected
+
     def _fill_clicks(self, statistics_container, group_parameters, clicks_count, leads_count, payouts, lead_status):
         if len(group_parameters) == 0:
             statistics_container.setdefault('statuses', {})
@@ -40,7 +65,9 @@ class ReportService:
 
         group_parameter = group_parameters[0]
         statistics_container.setdefault(group_parameter, {})
-        self._fill_clicks(statistics_container[group_parameter], group_parameters[1:], clicks_count, leads_count, payouts, lead_status)
+        self._fill_clicks(
+            statistics_container[group_parameter], group_parameters[1:], clicks_count, leads_count, payouts, lead_status
+        )
 
     def _build_statistics_report(self, report_rows, expenses_rows, parameters):
         report = defaultdict(dict)
@@ -64,35 +91,37 @@ class ReportService:
 
             # extend records with expenses
             if len(parameters['group_parameters']) == 0:
-                daily_statistics = report[date]
 
                 distribution = date2distribution.get(date)
                 if distribution:
-                    daily_statistics['expenses'] = sum(distribution.values())
+                    payouts_accepted, payouts_expected = self._get_payouts(report[date], parameters['group_parameters'])
 
-                    payouts_accepted = sum(
-                        stats['payouts']
-                        for status, stats in daily_statistics['statuses'].items()
-                        if status == LeadStatus.accept
+                    report[date]['expenses'] = sum(distribution.values())
+                    report[date]['roi_accepted'] = (
+                        (float(payouts_accepted) - report[date]['expenses']) / report[date]['expenses'] * 100
                     )
-                    payouts_expected = sum(
-                        stats['payouts']
-                        for status, stats in daily_statistics['statuses'].items()
-                        if status in {LeadStatus.accept, LeadStatus.expect}
-                    )
-
-                    daily_statistics['roi_accepted'] = (
-                        (float(payouts_accepted) - daily_statistics['expenses']) / daily_statistics['expenses'] * 100
-                    )
-
-                    daily_statistics['roi_expected'] = (
-                        (float(payouts_expected) - daily_statistics['expenses']) / daily_statistics['expenses'] * 100
+                    report[date]['roi_expected'] = (
+                        (float(payouts_expected) - report[date]['expenses']) / report[date]['expenses'] * 100
                     )
             else:
                 distribution = date2distribution.get(date)
                 if distribution:
                     for distribution_value, expenses in distribution.items():
+                        payouts_accepted, payouts_expected = self._get_payouts(
+                            report[date][distribution_value], parameters['group_parameters'][1:]
+                        )
+
                         report[date][distribution_value]['expenses'] = expenses
+                        report[date][distribution_value]['roi_accepted'] = (
+                            (float(payouts_accepted) - report[date][distribution_value]['expenses'])
+                            / report[date][distribution_value]['expenses']
+                            * 100
+                        )
+                        report[date][distribution_value]['roi_expected'] = (
+                            (float(payouts_expected) - report[date][distribution_value]['expenses'])
+                            / report[date][distribution_value]['expenses']
+                            * 100
+                        )
 
         return report
 

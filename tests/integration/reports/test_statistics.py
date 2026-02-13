@@ -1,4 +1,5 @@
 from datetime import datetime, timedelta
+from unittest import mock
 
 
 def test_get_report(client, authorization, campaign, statistics_expenses, timestamp):
@@ -131,8 +132,9 @@ def test_get_report__group_by_parameter(client, authorization, statistics_expens
 
     assert response.status_code == 200, response.text
 
-    start_date = datetime.fromtimestamp(start_timestamp)
-    end_date = datetime.fromtimestamp(end_timestamp)
+    start_date = datetime.fromtimestamp(start_timestamp).date()
+    end_date = datetime.fromtimestamp(end_timestamp).date()
+    cost_value = float(campaign['cost_value'])
 
     assert response.json == {
         'content': {
@@ -154,49 +156,83 @@ def test_get_report__group_by_parameter(client, authorization, statistics_expens
                 (start_date + timedelta(days=1)).isoformat(): {},
                 (start_date + timedelta(days=2)).isoformat(): {
                     'ad_1': {
-                        'fb': {'statuses': {}, 'clicks': 6},
-                        'inst': {'statuses': {}, 'clicks': 4},
-                        'expenses': 7.44,
+                        'fb': {'statuses': {}, 'clicks': mock.ANY},
+                        'inst': {'statuses': {}, 'clicks': mock.ANY},
+                        'expenses': statistics_expenses[start_date + timedelta(days=2)]['ad_1'],
                         'roi_accepted': -100.0,
                         'roi_expected': -100.0,
                     },
                     'ad_2': {
-                        'fb': {'statuses': {}, 'clicks': 10},
-                        'inst': {
+                        'fb': {
                             'statuses': {
-                                'accept': {'leads': 1, 'payouts': 10.0},
+                                'accept': {'leads': 1, 'payouts': 1 * cost_value},
                                 'trash': {'leads': 1, 'payouts': 0.0},
                             },
-                            'clicks': 10,
+                            'clicks': mock.ANY,
                         },
-                        'expenses': 8.82,
-                        'roi_accepted': 13.378684807256233,
-                        'roi_expected': 13.378684807256233,
+                        'inst': {'statuses': {}, 'clicks': mock.ANY},
+                        'expenses': statistics_expenses[start_date + timedelta(days=2)]['ad_2'],
+                        'roi_accepted': (
+                            (1 * cost_value - statistics_expenses[start_date + timedelta(days=2)]['ad_2'])
+                            / statistics_expenses[start_date + timedelta(days=2)]['ad_2']
+                            * 100
+                        ),
+                        'roi_expected': (
+                            (1 * cost_value - statistics_expenses[start_date + timedelta(days=2)]['ad_2'])
+                            / statistics_expenses[start_date + timedelta(days=2)]['ad_2']
+                            * 100
+                        ),
                     },
                 },
                 (start_date + timedelta(days=3)).isoformat(): {
                     'ad_1': {
-                        'fb': {'statuses': {}, 'clicks': 7},
-                        'inst': {'statuses': {'reject': {'leads': 1, 'payouts': 0.0}}, 'clicks': 8},
-                        'expenses': 7.82,
+                        'fb': {'statuses': {'reject': {'leads': 1, 'payouts': 0.0}}, 'clicks': mock.ANY},
+                        'inst': {'statuses': {}, 'clicks': mock.ANY},
+                        'expenses': statistics_expenses[start_date + timedelta(days=3)]['ad_1'],
                         'roi_accepted': -100.0,
                         'roi_expected': -100.0,
                     },
                     'ad_2': {
-                        'fb': {'statuses': {'accept': {'leads': 1, 'payouts': 10.0}}, 'clicks': 6},
-                        'inst': {'statuses': {'expect': {'leads': 1, 'payouts': 10.0}}, 'clicks': 4},
-                        'expenses': 5.14,
-                        'roi_accepted': 94.55252918287938,
-                        'roi_expected': 289.10505836575874,
+                        'fb': {
+                            'statuses': {
+                                'accept': {'leads': 1, 'payouts': 1 * cost_value},
+                                'expect': {'leads': 1, 'payouts': 1 * cost_value},
+                            },
+                            'clicks': mock.ANY,
+                        },
+                        'inst': {'statuses': {}, 'clicks': mock.ANY},
+                        'expenses': statistics_expenses[start_date + timedelta(days=3)]['ad_2'],
+                        'roi_accepted': (
+                            (1 * cost_value - statistics_expenses[start_date + timedelta(days=3)]['ad_2'])
+                            / statistics_expenses[start_date + timedelta(days=3)]['ad_2']
+                            * 100
+                        ),
+                        'roi_expected': (
+                            (
+                                1 * cost_value
+                                + 1 * cost_value
+                                - statistics_expenses[start_date + timedelta(days=3)]['ad_2']
+                            )
+                            / statistics_expenses[start_date + timedelta(days=3)]['ad_2']
+                            * 100
+                        ),
                     },
                 },
                 end_date.isoformat(): {
                     'ad_1': {
-                        'fb': {'statuses': {}, 'clicks': 4},
-                        'inst': {'statuses': {'accept': {'leads': 1, 'payouts': 10.0}}, 'clicks': 4},
-                        'expenses': 5.68,
-                        'roi_accepted': 76.05633802816902,
-                        'roi_expected': 76.05633802816902,
+                        'fb': {'statuses': {'accept': {'leads': 1, 'payouts': 1 * cost_value}}, 'clicks': mock.ANY},
+                        'inst': {'statuses': {}, 'clicks': mock.ANY},
+                        'expenses': statistics_expenses[end_date]['ad_1'],
+                        'roi_accepted': (
+                            (1 * cost_value - statistics_expenses[end_date]['ad_1'])
+                            / statistics_expenses[end_date]['ad_1']
+                            * 100
+                        ),
+                        'roi_expected': (
+                            (1 * cost_value - statistics_expenses[end_date]['ad_1'])
+                            / statistics_expenses[end_date]['ad_1']
+                            * 100
+                        ),
                     }
                 },
             },

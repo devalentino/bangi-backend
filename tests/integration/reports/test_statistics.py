@@ -488,17 +488,53 @@ def test_get_report__group_by_parameter__not_expenses_distribution(
             ],
             'groupParameters': ['utm_source'],
             'report': {
-                start_date.isoformat(): {},
-                (start_date + timedelta(days=1)).isoformat(): {},
-                (start_date + timedelta(days=2)).isoformat(): {
+                start_date.isoformat(): {
+                    'expenses': 0,
+                    'roi_accepted': 0,
+                    'roi_expected': 0,
                     'fb': {
                         'statuses': {
-                            'accept': {'leads': 1, 'payouts': 1 * cost_value},
-                            'trash': {'leads': 1, 'payouts': 0},
+                            'accept': {'leads': 0, 'payouts': 0},
+                            'expect': {'leads': 0, 'payouts': 0},
+                            'reject': {'leads': 0, 'payouts': 0},
+                            'trash': {'leads': 0, 'payouts': 0},
                         },
-                        'clicks': mock.ANY,
+                        'clicks': 0,
                     },
-                    'inst': {'statuses': {}, 'clicks': mock.ANY},
+                    'inst': {
+                        'statuses': {
+                            'accept': {'leads': 0, 'payouts': 0},
+                            'expect': {'leads': 0, 'payouts': 0},
+                            'reject': {'leads': 0, 'payouts': 0},
+                            'trash': {'leads': 0, 'payouts': 0},
+                        },
+                        'clicks': 0,
+                    },
+                },
+                (start_date + timedelta(days=1)).isoformat(): {
+                    'expenses': 0,
+                    'roi_accepted': 0,
+                    'roi_expected': 0,
+                    'fb': {
+                        'statuses': {
+                            'accept': {'leads': 0, 'payouts': 0},
+                            'expect': {'leads': 0, 'payouts': 0},
+                            'reject': {'leads': 0, 'payouts': 0},
+                            'trash': {'leads': 0, 'payouts': 0},
+                        },
+                        'clicks': 0,
+                    },
+                    'inst': {
+                        'statuses': {
+                            'accept': {'leads': 0, 'payouts': 0},
+                            'expect': {'leads': 0, 'payouts': 0},
+                            'reject': {'leads': 0, 'payouts': 0},
+                            'trash': {'leads': 0, 'payouts': 0},
+                        },
+                        'clicks': 0,
+                    },
+                },
+                (start_date + timedelta(days=2)).isoformat(): {
                     'expenses': sum(statistics_expenses[start_date + timedelta(days=2)].values()),
                     'roi_accepted': (
                         (1 * cost_value - sum(statistics_expenses[start_date + timedelta(days=2)].values()))
@@ -510,17 +546,26 @@ def test_get_report__group_by_parameter__not_expenses_distribution(
                         / sum(statistics_expenses[start_date + timedelta(days=2)].values())
                         * 100
                     ),
-                },
-                (start_date + timedelta(days=3)).isoformat(): {
                     'fb': {
                         'statuses': {
                             'accept': {'leads': 1, 'payouts': 1 * cost_value},
-                            'expect': {'leads': 1, 'payouts': 1 * cost_value},
-                            'reject': {'leads': 1, 'payouts': 0},
+                            'expect': {'leads': 0, 'payouts': 0},
+                            'reject': {'leads': 0, 'payouts': 0},
+                            'trash': {'leads': 1, 'payouts': 0},
                         },
                         'clicks': mock.ANY,
                     },
-                    'inst': {'statuses': {}, 'clicks': mock.ANY},
+                    'inst': {
+                        'statuses': {
+                            'accept': {'leads': 0, 'payouts': 0},
+                            'expect': {'leads': 0, 'payouts': 0},
+                            'reject': {'leads': 0, 'payouts': 0},
+                            'trash': {'leads': 0, 'payouts': 0},
+                        },
+                        'clicks': mock.ANY,
+                    },
+                },
+                (start_date + timedelta(days=3)).isoformat(): {
                     'expenses': sum(statistics_expenses[start_date + timedelta(days=3)].values()),
                     'roi_accepted': (
                         (1 * cost_value - sum(statistics_expenses[start_date + timedelta(days=3)].values()))
@@ -536,10 +581,26 @@ def test_get_report__group_by_parameter__not_expenses_distribution(
                         / sum(statistics_expenses[start_date + timedelta(days=3)].values())
                         * 100
                     ),
+                    'fb': {
+                        'statuses': {
+                            'accept': {'leads': 1, 'payouts': 10.0},
+                            'expect': {'leads': 1, 'payouts': 10.0},
+                            'reject': {'leads': 1, 'payouts': 0},
+                            'trash': {'leads': 0, 'payouts': 0},
+                        },
+                        'clicks': mock.ANY,
+                    },
+                    'inst': {
+                        'statuses': {
+                            'accept': {'leads': 0, 'payouts': 0},
+                            'expect': {'leads': 0, 'payouts': 0},
+                            'reject': {'leads': 0, 'payouts': 0},
+                            'trash': {'leads': 0, 'payouts': 0},
+                        },
+                        'clicks': mock.ANY,
+                    },
                 },
                 end_date.isoformat(): {
-                    'fb': {'statuses': {'accept': {'leads': 1, 'payouts': 1 * cost_value}}, 'clicks': mock.ANY},
-                    'inst': {'statuses': {}, 'clicks': mock.ANY},
                     'expenses': sum(statistics_expenses[end_date].values()),
                     'roi_accepted': (
                         (1 * cost_value - sum(statistics_expenses[end_date].values()))
@@ -551,6 +612,24 @@ def test_get_report__group_by_parameter__not_expenses_distribution(
                         / sum(statistics_expenses[end_date].values())
                         * 100
                     ),
+                    'fb': {
+                        'statuses': {
+                            'accept': {'leads': 1, 'payouts': 1 * cost_value},
+                            'expect': {'leads': 0, 'payouts': 0},
+                            'reject': {'leads': 0, 'payouts': 0},
+                            'trash': {'leads': 0, 'payouts': 0},
+                        },
+                        'clicks': mock.ANY,
+                    },
+                    'inst': {
+                        'statuses': {
+                            'accept': {'leads': 0, 'payouts': 0},
+                            'expect': {'leads': 0, 'payouts': 0},
+                            'reject': {'leads': 0, 'payouts': 0},
+                            'trash': {'leads': 0, 'payouts': 0},
+                        },
+                        'clicks': mock.ANY,
+                    },
                 },
             },
         }

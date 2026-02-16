@@ -136,88 +136,273 @@ def test_get_report__group_by_parameter(client, authorization, statistics_expens
             ],
             'groupParameters': ['ad_name', 'utm_source'],
             'report': {
-                start_date.isoformat(): {},
-                (start_date + timedelta(days=1)).isoformat(): {},
+                start_date.isoformat(): {
+                    'ad_1': {
+                        'expenses': 0,
+                        'roi_accepted': 0,
+                        'roi_expected': 0,
+                        'fb': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                    },
+                    'ad_2': {
+                        'expenses': 0,
+                        'roi_accepted': 0,
+                        'roi_expected': 0,
+                        'fb': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                    },
+                },
+                (start_date + timedelta(days=1)).isoformat(): {
+                    'ad_1': {
+                        'expenses': 0,
+                        'roi_accepted': 0,
+                        'roi_expected': 0,
+                        'fb': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                    },
+                    'ad_2': {
+                        'expenses': 0,
+                        'roi_accepted': 0,
+                        'roi_expected': 0,
+                        'fb': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                    },
+                },
                 (start_date + timedelta(days=2)).isoformat(): {
                     'ad_1': {
-                        'fb': {'statuses': {}, 'clicks': mock.ANY},
-                        'inst': {'statuses': {}, 'clicks': mock.ANY},
                         'expenses': statistics_expenses[start_date + timedelta(days=2)]['ad_1'],
                         'roi_accepted': -100.0,
                         'roi_expected': -100.0,
-                    },
-                    'ad_2': {
                         'fb': {
                             'statuses': {
-                                'accept': {'leads': 1, 'payouts': 1 * cost_value},
-                                'trash': {'leads': 1, 'payouts': 0.0},
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
                             },
                             'clicks': mock.ANY,
                         },
-                        'inst': {'statuses': {}, 'clicks': mock.ANY},
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': mock.ANY,
+                        },
+                    },
+                    'ad_2': {
                         'expenses': statistics_expenses[start_date + timedelta(days=2)]['ad_2'],
                         'roi_accepted': (
-                            (1 * cost_value - statistics_expenses[start_date + timedelta(days=2)]['ad_2'])
-                            / statistics_expenses[start_date + timedelta(days=2)]['ad_2']
-                            * 100
+                                (1 * cost_value - statistics_expenses[start_date + timedelta(days=2)]['ad_2'])
+                                / statistics_expenses[start_date + timedelta(days=2)]['ad_2']
+                                * 100
                         ),
                         'roi_expected': (
-                            (1 * cost_value - statistics_expenses[start_date + timedelta(days=2)]['ad_2'])
-                            / statistics_expenses[start_date + timedelta(days=2)]['ad_2']
-                            * 100
+                                (1 * cost_value - statistics_expenses[start_date + timedelta(days=2)]['ad_2'])
+                                / statistics_expenses[start_date + timedelta(days=2)]['ad_2']
+                                * 100
                         ),
+                        'fb': {
+                            'statuses': {
+                                'accept': {'leads': 1, 'payouts': 10.0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 1, 'payouts': 0},
+                            },
+                            'clicks': mock.ANY,
+                        },
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': mock.ANY,
+                        },
                     },
                 },
                 (start_date + timedelta(days=3)).isoformat(): {
                     'ad_1': {
-                        'fb': {'statuses': {'reject': {'leads': 1, 'payouts': 0.0}}, 'clicks': mock.ANY},
-                        'inst': {'statuses': {}, 'clicks': mock.ANY},
                         'expenses': statistics_expenses[start_date + timedelta(days=3)]['ad_1'],
                         'roi_accepted': -100.0,
                         'roi_expected': -100.0,
+                        'fb': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 1, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': mock.ANY,
+                        },
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': mock.ANY,
+                        },
                     },
                     'ad_2': {
+                        'expenses': statistics_expenses[start_date + timedelta(days=3)]['ad_2'],
+                        'roi_accepted': (
+                                (1 * cost_value - statistics_expenses[start_date + timedelta(days=3)]['ad_2'])
+                                / statistics_expenses[start_date + timedelta(days=3)]['ad_2']
+                                * 100
+                        ),
+                        'roi_expected': (
+                                (
+                                        1 * cost_value
+                                        + 1 * cost_value
+                                        - statistics_expenses[start_date + timedelta(days=3)]['ad_2']
+                                )
+                                / statistics_expenses[start_date + timedelta(days=3)]['ad_2']
+                                * 100
+                        ),
                         'fb': {
                             'statuses': {
                                 'accept': {'leads': 1, 'payouts': 1 * cost_value},
                                 'expect': {'leads': 1, 'payouts': 1 * cost_value},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
                             },
                             'clicks': mock.ANY,
                         },
-                        'inst': {'statuses': {}, 'clicks': mock.ANY},
-                        'expenses': statistics_expenses[start_date + timedelta(days=3)]['ad_2'],
-                        'roi_accepted': (
-                            (1 * cost_value - statistics_expenses[start_date + timedelta(days=3)]['ad_2'])
-                            / statistics_expenses[start_date + timedelta(days=3)]['ad_2']
-                            * 100
-                        ),
-                        'roi_expected': (
-                            (
-                                1 * cost_value
-                                + 1 * cost_value
-                                - statistics_expenses[start_date + timedelta(days=3)]['ad_2']
-                            )
-                            / statistics_expenses[start_date + timedelta(days=3)]['ad_2']
-                            * 100
-                        ),
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': mock.ANY,
+                        },
                     },
                 },
                 end_date.isoformat(): {
                     'ad_1': {
-                        'fb': {'statuses': {'accept': {'leads': 1, 'payouts': 1 * cost_value}}, 'clicks': mock.ANY},
-                        'inst': {'statuses': {}, 'clicks': mock.ANY},
                         'expenses': statistics_expenses[end_date]['ad_1'],
                         'roi_accepted': (
-                            (1 * cost_value - statistics_expenses[end_date]['ad_1'])
-                            / statistics_expenses[end_date]['ad_1']
-                            * 100
+                                (1 * cost_value - statistics_expenses[end_date]['ad_1'])
+                                / statistics_expenses[end_date]['ad_1']
+                                * 100
                         ),
                         'roi_expected': (
-                            (1 * cost_value - statistics_expenses[end_date]['ad_1'])
-                            / statistics_expenses[end_date]['ad_1']
-                            * 100
+                                (1 * cost_value - statistics_expenses[end_date]['ad_1'])
+                                / statistics_expenses[end_date]['ad_1']
+                                * 100
                         ),
-                    }
+                        'fb': {
+                            'statuses': {
+                                'accept': {'leads': 1, 'payouts': 1 * cost_value},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': mock.ANY,
+                        },
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': mock.ANY,
+                        },
+                    },
+                    'ad_2': {
+                        'expenses': 0,
+                        'roi_accepted': 0,
+                        'roi_expected': 0,
+                        'fb': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                        'inst': {
+                            'statuses': {
+                                'accept': {'leads': 0, 'payouts': 0},
+                                'expect': {'leads': 0, 'payouts': 0},
+                                'reject': {'leads': 0, 'payouts': 0},
+                                'trash': {'leads': 0, 'payouts': 0},
+                            },
+                            'clicks': 0,
+                        },
+                    },
                 },
             },
         }

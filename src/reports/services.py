@@ -88,7 +88,9 @@ class ReportService:
         self._fill_clicks_empty(statistics_container[grouped_value], grouped_values[1:], set_expenses)
 
     def _build_empty_statistics_report(self, parameters, match_expenses_distribution):
-        grouped_rows = self.statistics_report_repository.get_distribution_values(parameters)
+        grouped_rows = [()]
+        if parameters['group_parameters']:
+            grouped_rows = self.statistics_report_repository.get_distribution_values(parameters)
 
         report = {}
 
@@ -117,24 +119,14 @@ class ReportService:
         report = self._build_empty_statistics_report(parameters, match_expenses_distribution)
 
         for clicks_count, leads_count, payouts, lead_status, date, *parameters_values in report_rows:
+            if date not in report:
+                continue
+
             self._fill_clicks(report[date], parameters_values, clicks_count, leads_count, payouts, lead_status)
 
         date2distribution = {date: json.loads(distribution) for date, distribution in expenses_rows}
 
-        period_start_date = parameters['period_start']
-        period_end_date = utcnow().date()
-        if parameters['period_end']:
-            period_end_date = parameters['period_end']
-
-        report = {d: s for d, s in report.items() if period_start_date <= d <= period_end_date}
-
-        days_delta = period_end_date - period_start_date
-        for day in range(days_delta.days + 1):
-            date = period_start_date + timedelta(days=day)
-
-            if date not in report:
-                report[date] = {}
-
+        for date in report:
             # extend records with expenses
             if match_expenses_distribution:
                 distribution = date2distribution.get(date)

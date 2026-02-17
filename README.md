@@ -70,7 +70,18 @@ Format and lint:
 make lint
 ```
 
-Useful endpoints:
+## Build Image
+
+```bash
+docker build -t ghcr.io/devalentino/bangi-backend:$(git describe --tags --exact-match) .
+```
+
+## Deploy Image
+```bash
+docker push ghcr.io/devalentino/bangi-backend:$(git describe --tags --exact-match)
+```
+
+## Useful endpoints:
 
 - Health check: `/api/v2/health`
 - OpenAPI docs: `/openapi/swagger-ui`

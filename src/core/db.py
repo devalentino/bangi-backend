@@ -1,9 +1,9 @@
 from typing import Annotated
 
+from playhouse.shortcuts import ReconnectMixin
 from wireup import Inject, service
 
 from peewee import MySQLDatabase
-from playhouse.shortcuts import ReconnectMixin
 
 
 class ReconnectingMySQLDatabase(ReconnectMixin, MySQLDatabase):

@@ -3,6 +3,11 @@ from typing import Annotated
 from wireup import Inject, service
 
 from peewee import MySQLDatabase
+from playhouse.shortcuts import ReconnectMixin
+
+
+class ReconnectingMySQLDatabase(ReconnectMixin, MySQLDatabase):
+    pass
 
 
 @service(lifetime='singleton')
@@ -13,4 +18,4 @@ def database(
     password: Annotated[str, Inject(param='MARIADB_PASSWORD')],
     db_name: Annotated[str, Inject(param='MARIADB_DATABASE')],
 ) -> MySQLDatabase:
-    return MySQLDatabase(db_name, user=username, password=password, host=host, port=int(port))
+    return ReconnectingMySQLDatabase(db_name, user=username, password=password, host=host, port=int(port))

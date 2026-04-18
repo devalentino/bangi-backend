@@ -348,6 +348,34 @@ class ReportService:
 
         return click, leads, postbacks
 
+    def discard_report(self, *, campaign_id: int, window: str, group_by: str, group_by_field: str):
+        self.campaign_service.get(campaign_id)
+
+        start_timestamp = int(utcnow().timestamp()) - DISCARD_WINDOW_SECONDS[window]
+        total_count = int(
+            self.statistics_report_repository.campaign_total_count(
+                campaign_id=campaign_id,
+                start_timestamp=start_timestamp,
+            )
+            or 0
+        )
+        discard_count = int(
+            self.statistics_report_repository.campaign_discard_count(
+                campaign_id=campaign_id,
+                start_timestamp=start_timestamp,
+            )
+            or 0
+        )
+        distribution = list(
+            self.statistics_report_repository.campaign_discard_distribution(
+                campaign_id=campaign_id,
+                start_timestamp=start_timestamp,
+                group_by=group_by_field,
+            )
+        )
+
+        return discard_count, total_count, distribution
+
 
 @injectable
 class ReportHelperService:
